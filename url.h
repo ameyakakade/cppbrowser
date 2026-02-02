@@ -9,4 +9,5 @@ class urlReader{
 
         urlReader();
         bool read(std::string input);
+        std::string request();
 };
