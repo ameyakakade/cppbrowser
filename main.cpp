@@ -1,11 +1,20 @@
 #include <iostream>
 #include "url.h"
 #include <sys/socket.h>
+#include "parser.h"
 
 int main(){
-    std::string test = "http://example.org";
+    std::string test = "http://127.0.0.1/index.html";
     urlReader testReader;
-    std::cout << testReader.read(test) << std::endl;
-    testReader.request();
+    testReader.read(test);
+    std::string header, body;
+    testReader.request(header, body);
+
+    htmlParser parser;
+
+    parser.parse(body);
+
+    parser.traverse(parser.domTree, 0);
+
     return 0;
 }

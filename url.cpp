@@ -3,6 +3,8 @@
 #include <netdb.h>
 #include <iostream>
 #include <unistd.h>
+#include <sstream>
+#include <string>
 
 urlReader::urlReader(){
 
@@ -37,8 +39,9 @@ bool urlReader::read(std::string input){
     return true;
 }
 
-std::string urlReader::request(){
-    std::string content;
+void urlReader::request(std::string &header, std::string &body){
+
+    std::cout << "request called" << std::endl;
 
     struct addrinfo hints;
 
@@ -67,7 +70,7 @@ std::string urlReader::request(){
         if(connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1) break;
     }
 
-    char arr[1000];
+
 
     std::string request = "GET " + path +" HTTP/1.0\r\n" + "Host: " + host + "\r\n" + "\r\n";
     std::cout << request << std::endl;
@@ -76,9 +79,49 @@ std::string urlReader::request(){
     strcpy(req, request.c_str());
 
     write(sfd, req, sizeof(req));
-    std::cout << req << std::endl;
-    ::read(sfd, arr, sizeof(arr));
-    std::cout << arr << std::endl;
 
-    return content;
+    // parsing the header
+    
+    bool reading = true;
+
+    while(reading){
+        char arr;
+        ::read(sfd, &arr, sizeof(arr));
+        header += arr;
+        size_t endline = header.find("\r\n\r\n");
+        if(endline != std::string::npos){
+            reading = false;
+        }
+    }
+    
+    //getting the length from content length
+
+    int length = 0;
+
+    int word_pos = header.find("Content-Length");
+
+    if(word_pos!=std::string::npos){
+        size_t end = header.find("\n"); 
+
+        end = (end==std::string::npos) ? header.length() : end;
+
+        std::stringstream ss;
+        ss << header.substr(word_pos, end-word_pos);
+        
+        std::string word;
+        ss >> word;
+        ss >> length;
+    }
+    
+    reading = true;
+
+    while(reading){
+        char c;
+        ::read(sfd, &c, sizeof(c));
+        body += c;
+        length--;
+        if(length==0) reading=false;
+    }
+
+
 }

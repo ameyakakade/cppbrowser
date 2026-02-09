@@ -10,4 +10,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 4. Define your executable (The final program)
 # This says: "Take main.cpp and turn it into a program called 'browser'"
-add_executable(browser main.cpp url.cpp)
+add_executable(browser main.cpp url.cpp parser.cpp)
