@@ -12,26 +12,37 @@ void htmlParser::parse(std::string input){
     std::string word;
     std::string data;
     treeNode* curr = domTree;
+    std::vector<std::string> attributes;
 
     for(auto letter : input){
+
+        // convert this into a parse -> set state -> then act on the state type thing
+
         if(letter=='<'){
+            // write the data to the current node
+            // set state to reading tag
             curr->data = data;
             state = reading;
             word = "";
             data = "";
         }else if(state == reading && word == "" && letter == '/'){
+            // if end tag is found set state to reading end and move up the dom tree
             curr = curr->parentNode;
             state = readingend;
         }else if(letter=='>' && state==reading){
+            // if tag is ended and we were reading a tag make a new node in the tree and move curr to it
             state = outside;
             treeNode* temp = new treeNode(word, curr);
             curr->children.emplace_back(temp);
             curr = temp;
         }else if(state==reading){
+            // when reading html tag
             word += letter;
         }else if(state == outside){
+            // when reading data
             data += letter;
         }
+
     }
 
 }
