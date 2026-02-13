@@ -3,13 +3,17 @@
 #include <unordered_set>
 
 enum readingState{
-    reading, outside, readingend
+    readingTagStart, readingTag, readingTagContents, outside, readingTagEnd
+};
+
+enum dataType{
+    none, tag, endTag, textData
 };
 
 void htmlParser::parse(std::string input){
     domTree = new treeNode("ROOT", nullptr);
     int state = outside;
-    std::string word;
+    int type = none;
     std::string data;
     treeNode* curr = domTree;
     std::vector<std::string> attributes;
@@ -17,31 +21,78 @@ void htmlParser::parse(std::string input){
     for(auto letter : input){
 
         // convert this into a parse -> set state -> then act on the state type thing
+        
+        switch (letter){
 
-        if(letter=='<'){
-            // write the data to the current node
-            // set state to reading tag
-            curr->data = data;
-            state = reading;
-            word = "";
-            data = "";
-        }else if(state == reading && word == "" && letter == '/'){
-            // if end tag is found set state to reading end and move up the dom tree
-            curr = curr->parentNode;
-            state = readingend;
-        }else if(letter=='>' && state==reading){
-            // if tag is ended and we were reading a tag make a new node in the tree and move curr to it
-            state = outside;
-            treeNode* temp = new treeNode(word, curr);
-            curr->children.emplace_back(temp);
-            curr = temp;
-        }else if(state==reading){
-            // when reading html tag
-            word += letter;
-        }else if(state == outside){
-            // when reading data
-            data += letter;
+            case '<':
+                state = readingTagStart;
+                type = tag;
+                break;
+
+            case '/':
+                if(state == readingTagStart){
+                    type = endTag; 
+                }
+                break;
+
+            case '>':
+                state = readingTagEnd;
+                break;
+
+            default:
+                if(state == readingTagStart){
+                    // we started reading the thing
+                    state = readingTag;
+                }else if(state == readingTagEnd){
+                    state = outside;
+                    type = textData;
+                }
+
         }
+
+        switch (state){
+
+            case readingTagStart:
+                // init data when we start reading smth
+                data = "";
+                break;
+
+            case readingTag:
+                data += letter;
+                break;
+
+            case readingTagEnd:
+                if(type == tag){
+                    treeNode* temp = new treeNode(data, curr);
+                    curr->children.emplace_back(temp);
+                    curr = temp;
+                }else if (type == endTag){
+                    curr = curr->parentNode;
+                }
+                break;
+        }
+
+        // if(letter=='<'){
+        //     // write the data to the current node
+        //     // set state to reading tag
+        //     curr->data = data;
+        //     state = reading;
+        //     word = "";
+        //     data = "";
+        // }else if(state == reading && word == "" && letter == '/'){
+        //     // if end tag is found set state to reading end and move up the dom tree
+        //     curr = curr->parentNode;
+        //     state = readingend;
+        // }else if(letter=='>' && state==reading){
+        //     // if tag is ended and we were reading a tag make a new node in the tree and move curr to it
+        //     state = outside;
+        // }else if(state==reading){
+        //     // when reading html tag
+        //     word += letter;
+        // }else if(state == outside){
+        //     // when reading data
+        //     data += letter;
+        // }
 
     }
 
