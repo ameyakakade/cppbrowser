@@ -21,7 +21,8 @@ class treeNode{
         treeNode* parentNode;
         std::vector<treeNode*> children;
         std::string name;
-        std::string data;
+        std::string text;
+        std::string rawAttributes;
         std::vector<cssProperty> attributes;
         std::unique_ptr<layoutData> layout;
         ~treeNode();

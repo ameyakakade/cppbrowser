@@ -24,8 +24,9 @@ int main(){
 
     // adding css property to html node
     // these will only be inherited by nodes in body not in head
-    htmlNode->attributes.push_back(cssProperty{"color", "black", true});
-    htmlNode->attributes.push_back(cssProperty{"margin", "10", true});
+
+    // htmlNode->attributes.push_back(cssProperty{"color", "black", true});
+    // htmlNode->attributes.push_back(cssProperty{"margin", "10", true});
     
     // inherit css properties only for the nodes in body 
     for(auto node : htmlNode->children){

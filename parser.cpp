@@ -56,13 +56,9 @@ void htmlParser::parse(std::string input){
             case readingTagStart: {
                 // init data when we start reading smth
                 bool check = false;
-                for(char c : data){
-                    check = check or (c != ' ') and (c != '\n') and (c != '\t');
-                    std::cout << c;
-                }
+                for(char c : data) check = check or (c != ' ') and (c != '\n') and (c != '\t');
                 if(check){
-                    std::cout << data << std::endl;
-                    curr->data = data;
+                    curr->text = data;
                 }
                 data.clear();
                 attributes.clear();
@@ -81,11 +77,15 @@ void htmlParser::parse(std::string input){
                 data += letter;
                 break;
 
-            case readingTagEnd:
+            case readingTagEnd:{
+                bool check = false;
+                for(char c : attributes) check = check or (c != ' ') and (c != '\n') and (c != '\t');
                 if(type == tag){
                     treeNode* temp = new treeNode(data, curr);
                     curr->children.emplace_back(temp);
-                    std::cout << attributes;
+                    if(check){
+                        temp->rawAttributes = attributes;
+                    }
                     curr = temp;
                 }else if (type == endTag){
                     curr = curr->parentNode;
@@ -93,6 +93,8 @@ void htmlParser::parse(std::string input){
                 data.clear();
                 attributes.clear();
                 break;
+            }
+
         }
 
     }
@@ -104,7 +106,7 @@ void htmlParser::traverse(treeNode* node, int level){
     for(int i=0; i<level; i++){
         indent += "  ";
     }
-    std::cout << indent << node->name << node->data;
+    std::cout << indent << node->name << node->text << node->rawAttributes;
     for(auto property : node->attributes){
         std::cout << " " << property.name << ":" << property.value;
     }
