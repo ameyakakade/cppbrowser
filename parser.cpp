@@ -53,14 +53,21 @@ void htmlParser::parse(std::string input){
 
         switch (state){
 
-            case readingTagStart:
+            case readingTagStart: {
                 // init data when we start reading smth
-                if(data != ""){
+                bool check = false;
+                for(char c : data){
+                    check = check or (c != ' ') and (c != '\n') and (c != '\t');
+                    std::cout << c;
+                }
+                if(check){
+                    std::cout << data << std::endl;
                     curr->data = data;
                 }
                 data.clear();
                 attributes.clear();
                 break;
+            }
 
             case readingTag:
                 data += letter;
@@ -97,7 +104,7 @@ void htmlParser::traverse(treeNode* node, int level){
     for(int i=0; i<level; i++){
         indent += "  ";
     }
-    std::cout << indent << node->name << node->data.size();
+    std::cout << indent << node->name << node->data;
     for(auto property : node->attributes){
         std::cout << " " << property.name << ":" << property.value;
     }
