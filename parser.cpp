@@ -6,6 +6,10 @@ enum readingState{
     readingTagStart, readingTag, readingTagContents, outside, readingTagEnd
 };
 
+enum readingAttributes{
+    readingName, startReadingValue, readingValue, endReadingValue, ignoring, equal
+};
+
 enum dataType{
     none, tag, endTag, textData
 };
@@ -101,13 +105,80 @@ void htmlParser::parse(std::string input){
 
 }
 
+void htmlParser::parseAttributes(treeNode* node){
+
+    // readingName, readingValue, ignoring, equal
+    int state = ignoring;
+    std::string name;
+    std::string value;
+    bool check = false;
+
+    for(auto c : node->rawAttributes){
+        switch(c){
+
+            case ' ':
+                if(state == readingName) state = ignoring;
+                break;
+
+            case '=':
+                check = true;
+                break;
+
+            case '"':
+                if(state == ignoring) state = startReadingValue;
+                if(state == readingValue) state = endReadingValue;
+                break;
+
+            default:
+                if(state == ignoring) state = readingName;
+
+        }
+
+        switch(state){
+
+            case readingName:
+                name += c; 
+                break;
+
+            case startReadingValue:
+                value.clear();
+                state = readingValue;
+                break;
+
+            case endReadingValue:{
+                if(check){
+                    attributes temp;
+                    temp.name = name;
+                    temp.value = value;
+                    node->nodeAttributes.push_back(temp);
+                }
+                check = false;
+                name.clear();
+                value.clear();
+                state = ignoring;
+                break;
+            }
+
+            case readingValue:
+                value += c;
+                break;
+
+        }
+                
+    }
+
+    for(auto child : node->children){
+        parseAttributes(child);
+    }
+}
+
 void htmlParser::traverse(treeNode* node, int level){
     std::string indent;
     for(int i=0; i<level; i++){
         indent += "  ";
     }
-    std::cout << indent << node->name << node->text << node->rawAttributes;
-    for(auto property : node->attributes){
+    std::cout << indent << node->name << node->text;
+    for(auto property : node->nodeAttributes){
         std::cout << " " << property.name << ":" << property.value;
     }
     std::cout << "\n";
@@ -119,19 +190,19 @@ void htmlParser::traverse(treeNode* node, int level){
 void htmlParser::inheritCss(treeNode* node){
 
     // store a pointer to parent node's attributes
-    std::vector<cssProperty>* parentCss = &node->parentNode->attributes; 
+    std::vector<cssProperty>* parentCss = &node->parentNode->style; 
 
     // store attributes of self with name and name and index in hashmap
     std::unordered_set<std::string> selfCssAttributesCache;
-    for(int i=0; i<node->attributes.size(); i++){
-        selfCssAttributesCache.insert(node->attributes[i].name);
+    for(int i=0; i<node->style.size(); i++){
+        selfCssAttributesCache.insert(node->style[i].name);
     }
 
     // add all attributes from parent node
     for(cssProperty attribute : *parentCss){
         if(!selfCssAttributesCache.count(attribute.name)){
             // std::cout << "oo i inherit from body" << std::endl;
-            node->attributes.push_back(attribute);
+            node->style.push_back(attribute);
         }else{
             // std::cout << "oops i already have it" << std::endl;
         }

@@ -15,6 +15,11 @@ struct cssProperty{
     bool inheritable;
 };
 
+struct attributes{
+    std::string name;
+    std::string value;
+};
+
 class treeNode{
     public:
         treeNode(std::string input, treeNode* parent);
@@ -23,7 +28,8 @@ class treeNode{
         std::string name;
         std::string text;
         std::string rawAttributes;
-        std::vector<cssProperty> attributes;
+        std::vector<cssProperty> style;
+        std::vector<attributes> nodeAttributes;
         std::unique_ptr<layoutData> layout;
         ~treeNode();
 };
@@ -31,6 +37,7 @@ class treeNode{
 class htmlParser{
     public:
         void parse(std::string input);
+        void parseAttributes(treeNode* node);
         void traverse(treeNode* node, int level);
         void inheritCss(treeNode* node);
         layoutData calculateLayout(treeNode* node);

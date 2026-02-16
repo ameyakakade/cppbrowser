@@ -25,30 +25,33 @@ int main(){
     // adding css property to html node
     // these will only be inherited by nodes in body not in head
 
-    // htmlNode->attributes.push_back(cssProperty{"color", "black", true});
-    // htmlNode->attributes.push_back(cssProperty{"margin", "10", true});
+    htmlNode->style.push_back(cssProperty{"color", "black", true});
+    htmlNode->style.push_back(cssProperty{"margin", "10", true});
     
     // inherit css properties only for the nodes in body 
     for(auto node : htmlNode->children){
         if(node->name == "body") parser.inheritCss(node);
     }
 
+    parser.parseAttributes(parser.domTree);
+
     parser.traverse(parser.domTree, 0);
 
     // rendering 
-    SetConfigFlags(FLAG_WINDOW_HIGHDPI);
-    InitWindow(800, 600, "raylib [core] example - basic window");
 
-    while (!WindowShouldClose())
-    {
-        int boxPositionY = GetMouseWheelMove();
-        BeginDrawing();
-            ClearBackground(BLACK);
-            DrawText(body.c_str(), 190, 200, 20, LIGHTGRAY);
-        EndDrawing();
-    }
-
-    CloseWindow();
+    // SetConfigFlags(FLAG_WINDOW_HIGHDPI);
+    // InitWindow(800, 600, "raylib [core] example - basic window");
+    //
+    // while (!WindowShouldClose())
+    // {
+    //     int boxPositionY = GetMouseWheelMove();
+    //     BeginDrawing();
+    //         ClearBackground(BLACK);
+    //         DrawText(body.c_str(), 190, 200, 20, LIGHTGRAY);
+    //     EndDrawing();
+    // }
+    //
+    // CloseWindow();
 
     return 0;
 }
