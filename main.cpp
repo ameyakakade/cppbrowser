@@ -29,11 +29,12 @@ int main(){
     htmlNode->style.push_back(cssProperty{"margin", "10", true});
     
     // inherit css properties only for the nodes in body 
+
+    parser.parseAttributes(parser.domTree);
+
     for(auto node : htmlNode->children){
         if(node->name == "body") parser.inheritCss(node);
     }
-
-    parser.parseAttributes(parser.domTree);
 
     parser.traverse(parser.domTree, 0);
 

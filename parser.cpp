@@ -114,6 +114,7 @@ void htmlParser::parseAttributes(treeNode* node){
     bool check = false;
 
     for(auto c : node->rawAttributes){
+
         switch(c){
 
             case ' ':
@@ -122,10 +123,12 @@ void htmlParser::parseAttributes(treeNode* node){
 
             case '=':
                 check = true;
+                state = ignoring;
                 break;
 
             case '"':
                 if(state == ignoring) state = startReadingValue;
+                if(state == readingName) state = startReadingValue;
                 if(state == readingValue) state = endReadingValue;
                 break;
 
@@ -163,6 +166,9 @@ void htmlParser::parseAttributes(treeNode* node){
                 value += c;
                 break;
 
+            default:
+                ;
+
         }
                 
     }
@@ -188,6 +194,18 @@ void htmlParser::traverse(treeNode* node, int level){
 }
 
 void htmlParser::inheritCss(treeNode* node){
+
+    attributes styles;
+    for(auto attribute : node->nodeAttributes){
+        if(attribute.name == "style") {
+            styles = attribute;
+            break;
+        }
+    }
+    
+    for(char c : styles.value){
+        std::cout << c;
+    }
 
     // store a pointer to parent node's attributes
     std::vector<cssProperty>* parentCss = &node->parentNode->style; 
