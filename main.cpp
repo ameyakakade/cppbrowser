@@ -26,7 +26,6 @@ int main(){
     // these will only be inherited by nodes in body not in head
 
     htmlNode->style.push_back(cssProperty{"color", "black", true});
-    htmlNode->style.push_back(cssProperty{"margin", "10", true});
     
     // inherit css properties only for the nodes in body 
 

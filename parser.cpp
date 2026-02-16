@@ -185,7 +185,10 @@ void htmlParser::traverse(treeNode* node, int level){
     }
     std::cout << indent << node->name << node->text;
     for(auto property : node->nodeAttributes){
-        std::cout << " " << property.name << ":" << property.value;
+        std::cout << " Attribute " << property.name << "->" << property.value;
+    }
+    for(auto property : node->style){
+        std::cout << " Styles " << property.name << " : " << property.value;
     }
     std::cout << "\n";
     for(auto child : node->children){
@@ -202,9 +205,59 @@ void htmlParser::inheritCss(treeNode* node){
             break;
         }
     }
+
+    int state = ignoring;
+    std::string name;
+    std::string value;
     
     for(char c : styles.value){
-        std::cout << c;
+
+        switch(c){
+
+            case ' ':
+                break;
+
+            case ':':
+                state = equal;
+                break;
+
+            case ';':
+                state = endReadingValue;
+
+            default:
+                if(state == ignoring){
+                    state = readingName;
+                }else if(state == equal){
+                    state = readingValue;
+                }
+
+        }
+
+        switch(state){
+            
+            case readingName:
+                if(c != ' ') name += c;
+                break;
+
+            case readingValue:
+                value += c;
+                break;
+
+            case endReadingValue:{
+                cssProperty temp;
+                temp.name = name;
+                temp.value = value;
+                temp.inheritable = true;
+                node->style.push_back(temp);
+                name.clear();
+                value.clear();
+                state = ignoring;
+            }
+
+            default:
+                ;
+
+        }
     }
 
     // store a pointer to parent node's attributes
@@ -230,6 +283,7 @@ void htmlParser::inheritCss(treeNode* node){
     for(auto child : node->children){
         inheritCss(child);
     }
+
 }
 
 layoutData htmlParser::calculateLayout(treeNode* node){
