@@ -4,7 +4,7 @@
 #include "parser.h"
 
 int main(){
-
+    
     // converting address to ip and getting html from server
     std::string test = "http://127.0.0.1/index.html";
     urlReader testReader;
@@ -12,10 +12,19 @@ int main(){
     std::string header, body;
     testReader.request(header, body);
 
+    addDefaults("body",   "display: block; margin: 8px; ");
+    addDefaults("p",      "display: block; margin-top: 1em; margin-bottom: 1em;");
+    addDefaults("h1",     "display: block; margin-top: 1em; margin-bottom: 1em;");
+    addDefaults("h2",     "display: block; font-size: 1.5em; font-weight: bold; margin-top: 0.75em; margin-bottom: 0.75em; ");
+    addDefaults("h3",     " display: block; font-size: 1.17em; font-weight: bold; margin-top: 0.83em; margin-bottom: 0.83em; ");
+    addDefaults("span",   "display: inline; ");
+    addDefaults("strong", "display: inline; font-weight: bold;");
+    addDefaults("em",     "display: inline; font-style: italic;");
+    addDefaults("a",      "display: inline; color: blue; text-decoration: underline; cursor: pointer;");
+
     // parsing the html to make a dom tree
     htmlParser parser;
     parser.parse(body); // passing in the html
-                        //
 
     // adding some basic attributes to the html node
     treeNode* htmlNode;

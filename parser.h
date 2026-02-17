@@ -14,6 +14,7 @@ struct cssProperty{
     std::string name;
     std::string value;
     bool inheritable;
+
 };
 
 struct attributes{
@@ -21,9 +22,7 @@ struct attributes{
     std::string value;
 };
 
-struct defaults{
-    std::vector<cssProperty> properties;
-};
+void addDefaults(std::string name, std::string input);
 
 class treeNode{
     public:

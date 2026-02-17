@@ -15,6 +15,72 @@ enum dataType{
     none, tag, endTag, textData
 };
 
+std::unordered_map<std::string, std::vector<cssProperty>> tagDefaults;
+
+void parseCssIntoArray(std::string& input, std::vector<cssProperty>& array){
+
+    int state = ignoring;
+    std::string name;
+    std::string value;
+
+    for(char c : input){
+
+        switch(c){
+
+            case ' ':
+                break;
+
+            case ':':
+                state = equal;
+                break;
+
+            case ';':
+                state = endReadingValue;
+
+            default:
+                if(state == ignoring){
+                    state = readingName;
+                }else if(state == equal){
+                    state = readingValue;
+                }
+
+        }
+
+        switch(state){
+            
+            case readingName:
+                if(c != ' ') name += c;
+                break;
+
+            case readingValue:
+                value += c;
+                break;
+
+            case endReadingValue:{
+                cssProperty temp;
+                temp.name = name;
+                temp.value = value;
+                temp.inheritable = false;
+
+                array.push_back(temp);
+                
+                name.clear();
+                value.clear();
+                state = ignoring;
+            }
+
+            default:
+                ;
+        }
+    }
+}
+
+void addDefaults(std::string name, std::string input){
+    std::vector<cssProperty> temp;
+    parseCssIntoArray(input, temp);
+    tagDefaults[name] = temp;
+}
+
 std::unordered_set<std::string> inheritableProperties = {"color", "font-size"};
 
 void checkInheritable(cssProperty& property) {
@@ -188,14 +254,15 @@ void htmlParser::parseAttributes(treeNode* node){
 void htmlParser::traverse(treeNode* node, int level){
     std::string indent;
     for(int i=0; i<level; i++){
-        indent += "  ";
+        indent += "   ";
     }
-    std::cout << indent << node->name << node->text;
+    std::cout << indent << node->name << node->text << std::endl;
     // for(auto property : node->nodeAttributes){
     //     std::cout << " Attribute " << property.name << "->" << property.value;
     // }
+    
     for(auto property : node->style){
-        std::cout << " Styles " << property.name << " : " << property.value;
+        std::cout << indent << "    " << property.name << " : " << property.value << std::endl;
     }
     std::cout << "\n";
     for(auto child : node->children){
@@ -206,24 +273,60 @@ void htmlParser::traverse(treeNode* node, int level){
 void htmlParser::inheritCss(treeNode* node){
 
     // store attributes of self with name and name and index in hashmap
+
     std::unordered_map<std::string, size_t> selfCssAttributesCache;
+    bool cacheDirty = false;
     for(int i=0; i<node->style.size(); i++){
         selfCssAttributesCache[node->style[i].name] = i;
     }
+
+    /* Inheritance pass start */
 
     std::vector<cssProperty>* parentCss = &node->parentNode->style; 
     for(cssProperty attribute : *parentCss){
         if(!attribute.inheritable) continue;
         if(!selfCssAttributesCache.count(attribute.name)){
             node->style.push_back(attribute);
+            cacheDirty = true;
         }else{
             node->style[selfCssAttributesCache[attribute.name]] = attribute;
         }
     }
 
-    for(int i=0; i<node->style.size(); i++){
-        selfCssAttributesCache[node->style[i].name] = i;
+    if(cacheDirty){
+        for(int i=0; i<node->style.size(); i++) selfCssAttributesCache[node->style[i].name] = i;
+        cacheDirty = false;
     }
+
+    /* Inheritance pass end */
+
+
+    /* Tag defaults pass */
+
+    std::vector<cssProperty>* tagStyles;
+    if(tagDefaults.count(node->name)){
+        tagStyles = &tagDefaults[node->name];
+
+        // if it finds the property in the cache it updates else adds a new one 
+        for(auto property : *tagStyles){
+            if(!selfCssAttributesCache.count(property.name)){
+                node->style.push_back(property);
+                cacheDirty = true;
+            }else{
+                node->style[selfCssAttributesCache[property.name]] = property;
+            }
+        }
+    }
+
+    if(cacheDirty){
+        for(int i=0; i<node->style.size(); i++) selfCssAttributesCache[node->style[i].name] = i;
+        cacheDirty = false;
+    }
+
+    /* Tag defaults pass end */
+
+
+    /* Inline style pass */
 
     attributes styles;
     for(auto attribute : node->nodeAttributes){
@@ -278,6 +381,7 @@ void htmlParser::inheritCss(treeNode* node){
 
                 if(!selfCssAttributesCache.count(temp.name)){
                     node->style.push_back(temp);
+                    cacheDirty = true;
                 }else{
                     node->style[selfCssAttributesCache[temp.name]] = temp;
                 }
@@ -293,6 +397,9 @@ void htmlParser::inheritCss(treeNode* node){
         }
     }
 
+    /* Inline style pass end */
+
+    // inheritable flag of properties is set
     for(auto& property : node->style) {
         checkInheritable(property);
     }
