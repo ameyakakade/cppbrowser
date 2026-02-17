@@ -15,6 +15,7 @@ int main(){
     // parsing the html to make a dom tree
     htmlParser parser;
     parser.parse(body); // passing in the html
+                        //
 
     // adding some basic attributes to the html node
     treeNode* htmlNode;

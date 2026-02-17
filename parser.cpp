@@ -1,6 +1,7 @@
 #include "parser.h"
 #include <iostream>
 #include <unordered_set>
+#include <unordered_map>
 
 enum readingState{
     readingTagStart, readingTag, readingTagContents, outside, readingTagEnd
@@ -13,6 +14,12 @@ enum readingAttributes{
 enum dataType{
     none, tag, endTag, textData
 };
+
+std::unordered_set<std::string> inheritableProperties = {"color", "font-size"};
+
+void checkInheritable(cssProperty& property) {
+    property.inheritable = inheritableProperties.count(property.name);
+}
 
 void htmlParser::parse(std::string input){
     domTree = new treeNode("ROOT", nullptr);
@@ -184,9 +191,9 @@ void htmlParser::traverse(treeNode* node, int level){
         indent += "  ";
     }
     std::cout << indent << node->name << node->text;
-    for(auto property : node->nodeAttributes){
-        std::cout << " Attribute " << property.name << "->" << property.value;
-    }
+    // for(auto property : node->nodeAttributes){
+    //     std::cout << " Attribute " << property.name << "->" << property.value;
+    // }
     for(auto property : node->style){
         std::cout << " Styles " << property.name << " : " << property.value;
     }
@@ -197,6 +204,26 @@ void htmlParser::traverse(treeNode* node, int level){
 }
 
 void htmlParser::inheritCss(treeNode* node){
+
+    // store attributes of self with name and name and index in hashmap
+    std::unordered_map<std::string, size_t> selfCssAttributesCache;
+    for(int i=0; i<node->style.size(); i++){
+        selfCssAttributesCache[node->style[i].name] = i;
+    }
+
+    std::vector<cssProperty>* parentCss = &node->parentNode->style; 
+    for(cssProperty attribute : *parentCss){
+        if(!attribute.inheritable) continue;
+        if(!selfCssAttributesCache.count(attribute.name)){
+            node->style.push_back(attribute);
+        }else{
+            node->style[selfCssAttributesCache[attribute.name]] = attribute;
+        }
+    }
+
+    for(int i=0; i<node->style.size(); i++){
+        selfCssAttributesCache[node->style[i].name] = i;
+    }
 
     attributes styles;
     for(auto attribute : node->nodeAttributes){
@@ -247,8 +274,14 @@ void htmlParser::inheritCss(treeNode* node){
                 cssProperty temp;
                 temp.name = name;
                 temp.value = value;
-                temp.inheritable = true;
-                node->style.push_back(temp);
+                temp.inheritable = false;
+
+                if(!selfCssAttributesCache.count(temp.name)){
+                    node->style.push_back(temp);
+                }else{
+                    node->style[selfCssAttributesCache[temp.name]] = temp;
+                }
+                
                 name.clear();
                 value.clear();
                 state = ignoring;
@@ -260,23 +293,8 @@ void htmlParser::inheritCss(treeNode* node){
         }
     }
 
-    // store a pointer to parent node's attributes
-    std::vector<cssProperty>* parentCss = &node->parentNode->style; 
-
-    // store attributes of self with name and name and index in hashmap
-    std::unordered_set<std::string> selfCssAttributesCache;
-    for(int i=0; i<node->style.size(); i++){
-        selfCssAttributesCache.insert(node->style[i].name);
-    }
-
-    // add all attributes from parent node
-    for(cssProperty attribute : *parentCss){
-        if(!selfCssAttributesCache.count(attribute.name)){
-            // std::cout << "oo i inherit from body" << std::endl;
-            node->style.push_back(attribute);
-        }else{
-            // std::cout << "oops i already have it" << std::endl;
-        }
+    for(auto& property : node->style) {
+        checkInheritable(property);
     }
 
     // inherit css for child classes
@@ -295,6 +313,12 @@ layoutData htmlParser::calculateLayout(treeNode* node){
     }
 
     return layout;
+}
+
+void addDefaultStyle(std::string name, std::string value){
+    cssProperty temp;
+    temp.name = name;
+    temp.value = value;
 }
 
 treeNode::treeNode(std::string input, treeNode* parent){

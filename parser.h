@@ -4,6 +4,7 @@
 
 struct layoutData {
     float height;
+ 
     float width;
     float x;
     float y;
@@ -18,6 +19,10 @@ struct cssProperty{
 struct attributes{
     std::string name;
     std::string value;
+};
+
+struct defaults{
+    std::vector<cssProperty> properties;
 };
 
 class treeNode{
@@ -38,8 +43,9 @@ class htmlParser{
     public:
         void parse(std::string input);
         void parseAttributes(treeNode* node);
-        void traverse(treeNode* node, int level);
         void inheritCss(treeNode* node);
         layoutData calculateLayout(treeNode* node);
+        void traverse(treeNode* node, int level);
+
         treeNode* domTree;
 };
