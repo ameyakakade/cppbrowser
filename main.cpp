@@ -12,11 +12,14 @@ int main(){
     std::string header, body;
     testReader.request(header, body);
 
+    addGlobalDefaults("display: inline; color: black; background-color: transparent; font-size: 16px; font-weight: normal; font-style: normal; text-decoration: none; cursor: auto; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;");
+
     addDefaults("body",   "display: block; margin: 8px; ");
     addDefaults("p",      "display: block; margin-top: 1em; margin-bottom: 1em;");
-    addDefaults("h1",     "display: block; margin-top: 1em; margin-bottom: 1em;");
+    addDefaults("div",    "display: block;");
+    addDefaults("h1",     "display: block; font-size: 2em; font-weight: bold; margin-top: 0.67em; margin-bottom: 0.67em; ");
     addDefaults("h2",     "display: block; font-size: 1.5em; font-weight: bold; margin-top: 0.75em; margin-bottom: 0.75em; ");
-    addDefaults("h3",     " display: block; font-size: 1.17em; font-weight: bold; margin-top: 0.83em; margin-bottom: 0.83em; ");
+    addDefaults("h3",     "display: block; font-size: 1.17em; font-weight: bold; margin-top: 0.83em; margin-bottom: 0.83em; ");
     addDefaults("span",   "display: inline; ");
     addDefaults("strong", "display: inline; font-weight: bold;");
     addDefaults("em",     "display: inline; font-style: italic;");

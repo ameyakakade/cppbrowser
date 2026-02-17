@@ -16,6 +16,7 @@ enum dataType{
 };
 
 std::unordered_map<std::string, std::vector<cssProperty>> tagDefaults;
+std::vector<cssProperty> globalDefaults;
 
 void parseCssIntoArray(std::string& input, std::vector<cssProperty>& array){
 
@@ -79,6 +80,10 @@ void addDefaults(std::string name, std::string input){
     std::vector<cssProperty> temp;
     parseCssIntoArray(input, temp);
     tagDefaults[name] = temp;
+}
+
+void addGlobalDefaults(std::string input){
+    parseCssIntoArray(input, globalDefaults);
 }
 
 std::unordered_set<std::string> inheritableProperties = {"color", "font-size"};
@@ -271,6 +276,9 @@ void htmlParser::traverse(treeNode* node, int level){
 }
 
 void htmlParser::inheritCss(treeNode* node){
+
+    /* Inheriting global defaults */
+    node->style = globalDefaults;
 
     // store attributes of self with name and name and index in hashmap
 

@@ -23,6 +23,7 @@ struct attributes{
 };
 
 void addDefaults(std::string name, std::string input);
+void addGlobalDefaults(std::string input);
 
 class treeNode{
     public:
