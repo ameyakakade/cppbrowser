@@ -14,7 +14,7 @@ int main(){
 
     addGlobalDefaults("display: inline; color: black; background-color: transparent; font-size: 16px; font-weight: normal; font-style: normal; text-decoration: none; cursor: auto; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;");
 
-    addDefaults("body",   "display: block; margin: 8px; ");
+    addDefaults("body",   "display: block; margin-top: 8px; margin-bottom:8px; margin-right: 8px; margin-left: 8px;");
     addDefaults("p",      "display: block; margin-top: 1em; margin-bottom: 1em;");
     addDefaults("div",    "display: block;");
     addDefaults("h1",     "display: block; font-size: 2em; font-weight: bold; margin-top: 0.67em; margin-bottom: 0.67em; ");
