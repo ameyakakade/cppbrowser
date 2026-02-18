@@ -2,6 +2,7 @@
 #include "url.h"
 #include <sys/socket.h>
 #include "parser.h"
+#include "layout.h"
 
 int main(){
     
@@ -35,24 +36,26 @@ int main(){
         if(node->name == "html") htmlNode = node;
     }
 
-    // adding css property to html node
-    // these will only be inherited by nodes in body not in head
-
-    htmlNode->style.push_back(cssProperty{"color", "black", true});
-    
     // inherit css properties only for the nodes in body 
 
     parser.parseAttributes(parser.domTree);
 
+    treeNode* bodyNode;
     for(auto node : htmlNode->children){
-        if(node->name == "body") parser.inheritCss(node);
+        if(node->name == "body") bodyNode = node;
     }
+    parser.inheritCss(bodyNode);
 
     parser.traverse(parser.domTree, 0);
 
+    /* making the layout tree */
+    layoutTree layoutRenderTree;
+
+    layoutRenderTree.makeLayoutTree(bodyNode, layoutRenderTree.layoutTreeRoot);
+
     // rendering 
 
-    // SetConfigFlags(FLAG_WINDOW_HIGHDPI);
+    SetConfigFlags(FLAG_WINDOW_HIGHDPI);
     // InitWindow(800, 600, "raylib [core] example - basic window");
     //
     // while (!WindowShouldClose())

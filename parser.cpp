@@ -1,7 +1,6 @@
 #include "parser.h"
 #include <iostream>
 #include <unordered_set>
-#include <unordered_map>
 
 enum readingState{
     readingTagStart, readingTag, readingTagContents, outside, readingTagEnd
@@ -407,6 +406,13 @@ void htmlParser::inheritCss(treeNode* node){
 
     /* Inline style pass end */
 
+    if(cacheDirty){
+        for(int i=0; i<node->style.size(); i++) selfCssAttributesCache[node->style[i].name] = i;
+        cacheDirty = false;
+    }
+
+    node->cssPropertyIndexCache = selfCssAttributesCache;
+
     // inheritable flag of properties is set
     for(auto& property : node->style) {
         checkInheritable(property);
@@ -417,17 +423,6 @@ void htmlParser::inheritCss(treeNode* node){
         inheritCss(child);
     }
 
-}
-
-layoutData htmlParser::calculateLayout(treeNode* node){
-    layoutData layout;
-
-    // calculate dimensions for all children
-    for(auto child : node->children){
-        calculateLayout(child);
-    }
-
-    return layout;
 }
 
 void addDefaultStyle(std::string name, std::string value){

@@ -1,14 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-
-struct layoutData {
-    float height;
- 
-    float width;
-    float x;
-    float y;
-};
+#include <unordered_map>
 
 struct cssProperty{
     std::string name;
@@ -34,8 +27,8 @@ class treeNode{
         std::string text;
         std::string rawAttributes;
         std::vector<cssProperty> style;
+        std::unordered_map<std::string, size_t> cssPropertyIndexCache;
         std::vector<attributes> nodeAttributes;
-        std::unique_ptr<layoutData> layout;
         ~treeNode();
 };
 
@@ -44,7 +37,6 @@ class htmlParser{
         void parse(std::string input);
         void parseAttributes(treeNode* node);
         void inheritCss(treeNode* node);
-        layoutData calculateLayout(treeNode* node);
         void traverse(treeNode* node, int level);
 
         treeNode* domTree;
