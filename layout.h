@@ -1,6 +1,11 @@
 #pragma once
 #include <vector>
 #include "parser.h"
+#include "raylib/include/raylib.h"
+
+enum class displayType{
+    displayBlock, displayInline
+};
 
 class layoutNode{
     public:
@@ -12,6 +17,16 @@ class layoutNode{
         float width;
         float x;
         float y;
+
+        float margin[4]; // top, bottom, right, left;
+        float padding[4]; // top, bottom, right, left;
+        float borders[4]; // top, bottom, right, left;
+        
+        displayType display;
+        
+        Color color;
+        Color backgroundColor;
+        Color borderColor;
 };
 
 class layoutTree{
@@ -20,4 +35,8 @@ class layoutTree{
         void traverse(layoutNode* node, int level);
 
         layoutNode* layoutTreeRoot;
+
+        // constants
+        float emToPx = 16;
+        float scale = 1;
 };

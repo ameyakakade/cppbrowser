@@ -29,7 +29,10 @@ void layoutTree::traverse(layoutNode* node, int level){
     for(int i=0; i<level; i++){
         indent += "   ";
     }
-    std::cout << indent << node->originNode->name << std::endl;
+    std::cout << indent << node->originNode->name << " ";
+
+    std::cout << node->originNode->style[node->originNode->cssPropertyIndexCache["background-color"]].value << std::endl;
+
     std::cout << "\n";
     for(auto child : node->children){
         traverse(child, level+1);
