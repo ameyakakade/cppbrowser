@@ -4,6 +4,18 @@
 #include "parser.h"
 #include "layout.h"
 
+#define WINDOW_HEIGHT 800
+#define WINDOW_WIDTH 700
+
+void renderLayoutTree(layoutNode* node){
+
+    DrawRectangle(node->x, node->y, node->width, node->height, node->backgroundColor);
+
+    for(auto child : node->children){
+        renderLayoutTree(child);
+    }
+}
+
 int main(){
     
     // converting address to ip and getting html from server
@@ -58,23 +70,29 @@ int main(){
     layoutRenderTree.layoutTreeRoot = layoutRenderTree.layoutTreeRoot->children[0];
     delete temp;
 
+    layoutRenderTree.windowWidth = WINDOW_WIDTH;
+    layoutRenderTree.windowHeight = WINDOW_HEIGHT;
+    
+    layoutRenderTree.calculateLayoutPass(layoutRenderTree.layoutTreeRoot, layoutRenderTree.windowWidth);
+
     layoutRenderTree.traverse(layoutRenderTree.layoutTreeRoot, 0);
 
     // rendering 
 
     SetConfigFlags(FLAG_WINDOW_HIGHDPI);
-    // InitWindow(800, 600, "raylib [core] example - basic window");
-    //
-    // while (!WindowShouldClose())
-    // {
-    //     int boxPositionY = GetMouseWheelMove();
-    //     BeginDrawing();
-    //         ClearBackground(BLACK);
-    //         DrawText(body.c_str(), 190, 200, 20, LIGHTGRAY);
-    //     EndDrawing();
-    // }
-    //
-    // CloseWindow();
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "html viewer");
+
+    while (!WindowShouldClose())
+    {
+        int boxPositionY = GetMouseWheelMove();
+        BeginDrawing();
+            ClearBackground(WHITE);
+            renderLayoutTree(layoutRenderTree.layoutTreeRoot);
+        EndDrawing();
+    }
+
+    CloseWindow();
 
     return 0;
 }
+

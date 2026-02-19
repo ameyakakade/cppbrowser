@@ -1,6 +1,51 @@
 #include "layout.h"
 #include <iostream>
 #include <string>
+#include <unordered_map>
+
+std::unordered_map<std::string, Color> stringToColorMap = {
+
+{"WHITE",      GetColor(0xFFFFFFFF)},
+        {"SILVER",     GetColor(0xC0C0C0FF)},
+        {"GRAY",       GetColor(0x808080FF)},
+        {"BLACK",      GetColor(0x000000FF)},
+        
+        // Reds & Pinks
+        {"RED",        GetColor(0xFF0000FF)},
+        {"CRIMSON",    GetColor(0xDC143CFF)},
+        {"PINK",       GetColor(0xFFC0CBFF)},
+        {"HOTPINK",    GetColor(0xFF69B4FF)},
+        {"MAGENTA",    GetColor(0xFF00FFFF)},
+
+        // Oranges & Yellows
+        {"ORANGE",     GetColor(0xFFA500FF)},
+        {"CORAL",      GetColor(0xFF7F50FF)},
+        {"GOLD",       GetColor(0xFFD700FF)},
+        {"YELLOW",     GetColor(0xFFFF00FF)},
+        {"BEIGE",      GetColor(0xF5F5DCFF)},
+
+        // Greens
+        {"GREEN",      GetColor(0x008000FF)},
+        {"LIME",       GetColor(0x00FF00FF)},
+        {"OLIVE",      GetColor(0x808000FF)},
+        {"DARKGREEN",  GetColor(0x006400FF)},
+        {"TEAL",       GetColor(0x008080FF)},
+
+        // Blues
+        {"AQUA",       GetColor(0x00FFFFFF)},
+        {"SKYBLUE",    GetColor(0x87CEEBFF)},
+        {"BLUE",       GetColor(0x0000FFFF)},
+        {"NAVY",       GetColor(0x000080FF)},
+        {"ROYALBLUE",  GetColor(0x4169E1FF)},
+        {"MIDNIGHTBLUE", GetColor(0x191970FF)},
+
+        // Purples & Browns
+        {"PURPLE",     GetColor(0x800080FF)},
+        {"VIOLET",     GetColor(0xEE82EEFF)},
+        {"INDIGO",     GetColor(0x4B0082FF)},
+        {"BROWN",      GetColor(0xA52A2AFF)},
+        {"MAROON",     GetColor(0x800000FF)}
+};
 
 // body and root node
 void layoutTree::makeLayoutTree(treeNode* node, layoutNode* parentLayout){
@@ -32,6 +77,9 @@ void layoutTree::makeLayoutTree(treeNode* node, layoutNode* parentLayout){
     // filling the display type 
     currentLayoutNode->display = returnDisplayType(node->style[node->cssPropertyIndexCache["display"]].value);
 
+    // filling the background color 
+    currentLayoutNode->backgroundColor = convertStringToColor(node->style[node->cssPropertyIndexCache["background-color"]].value);
+
     // now we have to recurse and add layout nodes for all children of the treenode which will be linked to current layout node
     for(auto child : node->children){
         makeLayoutTree(child, currentLayoutNode);
@@ -44,11 +92,11 @@ void layoutTree::traverse(layoutNode* node, int level){
     for(int i=0; i<level; i++){
         indent += "   ";
     }
-    std::cout << indent << node->originNode->name << " ";
-    std::string temp;
-    if(node->display == displayType::displayBlock) temp = "block";
-    if(node->display == displayType::displayInline) temp = "inline";
-    std::cout << indent << " display:" << temp;
+    std::cout << indent << node->originNode->name << " " << std::endl;
+    std::cout << " " << " height:" << node->height;
+    std::cout << " " << "  width:" << node->width;
+    std::cout << " " << "      x:" << node->x;
+    std::cout << " " << "      y:" << node->y;
 
     std::cout << "\n";
     for(auto child : node->children){
@@ -121,4 +169,59 @@ displayType layoutTree::returnDisplayType(std::string& input){
     }
     return value;
 
+}
+
+// top, bottom, right, left;
+
+float layoutTree::calculateLayoutPass(layoutNode* node, float availableWidth){
+    float nodeWidth;
+    float nodeHeight = 0;
+
+    // node width is available width minus left and right margin
+    nodeWidth = availableWidth - (node->margin[2] + node->margin[3]);
+    
+    node->x = cursorX + node->margin[3];
+    node->y = cursorY + node->margin[0];
+
+    cursorX = node->x + node->padding[3];
+    cursorY = node->y + node->padding[1];
+
+    float newAvailableWidth = nodeWidth - (node->padding[2] + node->padding[3]);
+
+    for(auto child : node->children){
+        nodeHeight += calculateLayoutPass(child, newAvailableWidth);
+    }
+
+    nodeHeight += (node->padding[0] + node->padding[1]);
+
+    cursorX = node->x - node->margin[3];
+    cursorY = node->y + nodeHeight + node->margin[1];
+
+    node->height = nodeHeight;
+    node->width  = nodeWidth;
+
+    return nodeHeight + (node->margin[0] + node->margin[1]);
+}
+
+
+Color layoutTree::convertStringToColor(std::string& input){
+    std::string temp;
+    int state = 0;
+    for(char c : input){
+        if(c>65 && c<91) {
+            temp += c;
+            state = 1;
+        }else if(c>96 && c<123){
+            temp += (c - 32);
+            state = 1;
+        }else{
+            if(state == 1) break;
+        }
+    }
+
+    Color value = WHITE;
+    
+    if(stringToColorMap.count(temp) == 1) value = stringToColorMap[temp];
+
+    return value;
 }
