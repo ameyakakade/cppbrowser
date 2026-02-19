@@ -16,7 +16,8 @@ class layoutNode{
 
 class layoutTree{
     public:
-        void makeLayoutTree(treeNode* node, layoutNode* layout);
+        void makeLayoutTree(treeNode* node, layoutNode* parentLayout);
+        void traverse(layoutNode* node, int level);
 
         layoutNode* layoutTreeRoot;
 };

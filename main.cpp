@@ -51,7 +51,14 @@ int main(){
     /* making the layout tree */
     layoutTree layoutRenderTree;
 
+    // make a temporary root node for making layout tree
+    layoutNode* temp = layoutRenderTree.layoutTreeRoot = new layoutNode;
     layoutRenderTree.makeLayoutTree(bodyNode, layoutRenderTree.layoutTreeRoot);
+    // discard the root node and make the new root the body node
+    layoutRenderTree.layoutTreeRoot = layoutRenderTree.layoutTreeRoot->children[0];
+    delete temp;
+
+    layoutRenderTree.traverse(layoutRenderTree.layoutTreeRoot, 0);
 
     // rendering 
 
