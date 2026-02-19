@@ -3,9 +3,11 @@
 #include <string>
 #include <unordered_map>
 
+/* AI Generated Code */
+
 std::unordered_map<std::string, Color> stringToColorMap = {
 
-{"WHITE",      GetColor(0xFFFFFFFF)},
+        {"WHITE",      GetColor(0xFFFFFFFF)},
         {"SILVER",     GetColor(0xC0C0C0FF)},
         {"GRAY",       GetColor(0x808080FF)},
         {"BLACK",      GetColor(0x000000FF)},
@@ -46,6 +48,8 @@ std::unordered_map<std::string, Color> stringToColorMap = {
         {"BROWN",      GetColor(0xA52A2AFF)},
         {"MAROON",     GetColor(0x800000FF)}
 };
+
+/* AI Generated Code Ends */
 
 // body and root node
 void layoutTree::makeLayoutTree(treeNode* node, layoutNode* parentLayout){
@@ -184,7 +188,7 @@ float layoutTree::calculateLayoutPass(layoutNode* node, float availableWidth){
     node->y = cursorY + node->margin[0];
 
     cursorX = node->x + node->padding[3];
-    cursorY = node->y + node->padding[1];
+    cursorY = node->y + node->padding[0];
 
     float newAvailableWidth = nodeWidth - (node->padding[2] + node->padding[3]);
 

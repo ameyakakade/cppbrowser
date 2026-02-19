@@ -1,4 +1,4 @@
-#include "raylib/include/raylib.h"
+#include "../raylib/include/raylib.h"
 #include "url.h"
 #include <sys/socket.h>
 #include "parser.h"
@@ -86,7 +86,7 @@ int main(){
     {
         int boxPositionY = GetMouseWheelMove();
         BeginDrawing();
-            ClearBackground(WHITE);
+            ClearBackground(layoutRenderTree.layoutTreeRoot->backgroundColor);
             renderLayoutTree(layoutRenderTree.layoutTreeRoot);
         EndDrawing();
     }

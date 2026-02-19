@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "parser.h"
-#include "raylib/include/raylib.h"
+#include "../raylib/include/raylib.h"
 
 enum class displayType{
     displayBlock, displayInline

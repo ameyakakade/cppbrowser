@@ -9,7 +9,7 @@ find_package(raylib 3.0 REQUIRED) # Requires at least version 3.0
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(${PROJECT_NAME} main.cpp url.cpp parser.cpp layout.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/url.cpp src/parser.cpp src/layout.cpp)
 
 target_link_libraries(${PROJECT_NAME} raylib)
 
