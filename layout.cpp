@@ -17,6 +17,16 @@ void layoutTree::makeLayoutTree(treeNode* node, layoutNode* parentLayout){
     // add it to children of parent layout node
     parentLayout->children.push_back(currentLayoutNode);
 
+    /* filling data in layout nodes */
+
+    auto fillArray = [&](float* array, const std::string& identifier){
+        std::vector<std::string> suffix = {"-top", "-bottom", "-right", "-left"};
+        for(int i=0; i<4; i++) array[i] = convertStringToPx(node->style[node->cssPropertyIndexCache[identifier+(suffix[i])]].value);
+    };
+
+    fillArray(currentLayoutNode->margin, "margin");
+    fillArray(currentLayoutNode->padding, "padding");
+
     // now we have to recurse and add layout nodes for all children of the treenode which will be linked to current layout node
     for(auto child : node->children){
         makeLayoutTree(child, currentLayoutNode);
@@ -31,9 +41,7 @@ void layoutTree::traverse(layoutNode* node, int level){
     }
     std::cout << indent << node->originNode->name << " ";
 
-    float px = convertStringToPx(node->originNode->style[node->originNode->cssPropertyIndexCache["margin-top"]].value);
-
-    std::cout << node->originNode->style[node->originNode->cssPropertyIndexCache["margin-top"]].value << " converted is " << px << std::endl;
+    std::cout << indent << " margin-top:" << node->margin[0] ;
 
     std::cout << "\n";
     for(auto child : node->children){
@@ -41,7 +49,7 @@ void layoutTree::traverse(layoutNode* node, int level){
     }
 }
 
-float layoutTree::convertStringToPx(std::string input){
+float layoutTree::convertStringToPx(std::string& input){
     std::string data;
     std::string type;
 
@@ -75,8 +83,6 @@ float layoutTree::convertStringToPx(std::string input){
 
     if(type == "em") multiplier = emToPx;
     if(type == "px") multiplier = 1;
-
-    std::cout << data << ":" << type << std::endl;
 
     return value*multiplier;
 }
