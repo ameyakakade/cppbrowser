@@ -19,13 +19,18 @@ void layoutTree::makeLayoutTree(treeNode* node, layoutNode* parentLayout){
 
     /* filling data in layout nodes */
 
+    // lambda function for filling margin and padding data
     auto fillArray = [&](float* array, const std::string& identifier){
         std::vector<std::string> suffix = {"-top", "-bottom", "-right", "-left"};
         for(int i=0; i<4; i++) array[i] = convertStringToPx(node->style[node->cssPropertyIndexCache[identifier+(suffix[i])]].value);
     };
 
+    // filling margin and padding
     fillArray(currentLayoutNode->margin, "margin");
     fillArray(currentLayoutNode->padding, "padding");
+
+    // filling the display type 
+    currentLayoutNode->display = returnDisplayType(node->style[node->cssPropertyIndexCache["display"]].value);
 
     // now we have to recurse and add layout nodes for all children of the treenode which will be linked to current layout node
     for(auto child : node->children){
@@ -40,8 +45,10 @@ void layoutTree::traverse(layoutNode* node, int level){
         indent += "   ";
     }
     std::cout << indent << node->originNode->name << " ";
-
-    std::cout << indent << " margin-top:" << node->margin[0] ;
+    std::string temp;
+    if(node->display == displayType::displayBlock) temp = "block";
+    if(node->display == displayType::displayInline) temp = "inline";
+    std::cout << indent << " display:" << temp;
 
     std::cout << "\n";
     for(auto child : node->children){
@@ -85,4 +92,33 @@ float layoutTree::convertStringToPx(std::string& input){
     if(type == "px") multiplier = 1;
 
     return value*multiplier;
+}
+
+displayType layoutTree::returnDisplayType(std::string& input){
+    std::string temp;
+    int state = 0;
+    for(char c : input){
+        if(c>65 && c<91) {
+            temp += (c + 32);
+            state = 1;
+        }else if(c>96 && c<123){
+            temp += c;
+            state = 1;
+        }else{
+            if(state == 1) break;
+        }
+    }
+
+    displayType value;
+
+    if(temp == "block"){
+        value = displayType::displayBlock;
+    }else if(temp == "inline"){
+        value = displayType::displayInline;
+    }else{
+        std::cout << "Invalid CSS in \"" << input << "\"" << std::endl;
+        value = displayType::displayBlock;
+    }
+    return value;
+
 }
