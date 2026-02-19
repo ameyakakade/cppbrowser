@@ -34,6 +34,8 @@ class layoutTree{
         void makeLayoutTree(treeNode* node, layoutNode* parentLayout);
         void traverse(layoutNode* node, int level);
 
+        float convertStringToPx(std::string input);
+
         layoutNode* layoutTreeRoot;
 
         // constants

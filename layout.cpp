@@ -31,10 +31,52 @@ void layoutTree::traverse(layoutNode* node, int level){
     }
     std::cout << indent << node->originNode->name << " ";
 
-    std::cout << node->originNode->style[node->originNode->cssPropertyIndexCache["background-color"]].value << std::endl;
+    float px = convertStringToPx(node->originNode->style[node->originNode->cssPropertyIndexCache["margin-top"]].value);
+
+    std::cout << node->originNode->style[node->originNode->cssPropertyIndexCache["margin-top"]].value << " converted is " << px << std::endl;
 
     std::cout << "\n";
     for(auto child : node->children){
         traverse(child, level+1);
     }
+}
+
+float layoutTree::convertStringToPx(std::string input){
+    std::string data;
+    std::string type;
+
+    int state = 0;
+    for(char c : input){
+        if(state == 0){
+            if( c>47 && c<58 || c==46){
+                data += c;
+            }else if(c == ' '){
+                // do nothing
+            }else{
+                state = 1;
+                type += c;
+            }
+        }else if(state == 1){
+            if(c == ' ') break;
+            type += c;
+        }
+    }
+
+    float value;
+
+    try{
+        value = stof(data);
+    }catch(std::invalid_argument){
+        std::cout << "Invalid CSS in \"" << input << "\"" << std::endl;
+        value = 16;
+    }
+
+    float multiplier = 1;
+
+    if(type == "em") multiplier = emToPx;
+    if(type == "px") multiplier = 1;
+
+    std::cout << data << ":" << type << std::endl;
+
+    return value*multiplier;
 }
