@@ -282,11 +282,38 @@ void htmlParser::traverse(treeNode* node, int level){
         traverse(child, level+1);
     }
 }
+ 
+// function to convert 'margin' and 'padding' into its 4 parts
+bool transferSingleAttributeIntoFour(std::string identifier, std::vector<cssProperty>& styles, std::unordered_map<std::string, size_t> cache){
+    bool dirty = false;
+
+    // function to copy the value into 4 strings
+    auto copy = [](std::vector<std::string>& array, std::string value){
+        for(auto& a : array){
+            a = value;
+        }
+    };
+
+    cssProperty* propertyToBeChanged;
+    if(cache.count(identifier)){
+        // assuming the properties -top -bottom -left -right counterparts already exist
+        propertyToBeChanged = &styles[cache[identifier]];
+        std::vector<std::string> values(4, "0");
+        copy(values, propertyToBeChanged->value);
+        std::vector<std::string> suffix = {"-top", "-bottom", "-left", "-right"};
+        for(int i=0; i<4; i++){
+           styles[cache[ identifier+suffix[i] ]].value = values[i];
+        }
+        dirty = true;
+    }    
+    return dirty;
+}
 
 void htmlParser::inheritCss(treeNode* node){
 
     /* Inheriting global defaults */
     node->style = globalDefaults;
+
 
     // store attributes of self with name and name and index in hashmap
 
@@ -295,6 +322,14 @@ void htmlParser::inheritCss(treeNode* node){
     for(int i=0; i<node->style.size(); i++){
         selfCssAttributesCache[node->style[i].name] = i;
     }
+
+    // lambda to refresh cache
+    auto refreshCache = [&](){
+        if(cacheDirty){
+            for(int i=0; i<node->style.size(); i++) selfCssAttributesCache[node->style[i].name] = i;
+            cacheDirty = false;
+        }
+    };
 
     /* Inheritance pass start */
 
@@ -309,10 +344,7 @@ void htmlParser::inheritCss(treeNode* node){
         }
     }
 
-    if(cacheDirty){
-        for(int i=0; i<node->style.size(); i++) selfCssAttributesCache[node->style[i].name] = i;
-        cacheDirty = false;
-    }
+    refreshCache();
 
     /* Inheritance pass end */
 
@@ -334,10 +366,7 @@ void htmlParser::inheritCss(treeNode* node){
         }
     }
 
-    if(cacheDirty){
-        for(int i=0; i<node->style.size(); i++) selfCssAttributesCache[node->style[i].name] = i;
-        cacheDirty = false;
-    }
+    refreshCache();
 
     /* Tag defaults pass end */
 
@@ -412,15 +441,16 @@ void htmlParser::inheritCss(treeNode* node){
 
         }
     }
+    refreshCache();
 
     /* Inline style pass end */
-
-    if(cacheDirty){
-        for(int i=0; i<node->style.size(); i++) selfCssAttributesCache[node->style[i].name] = i;
-        cacheDirty = false;
-    }
+    cacheDirty = transferSingleAttributeIntoFour("padding", node->style, selfCssAttributesCache);
+    cacheDirty = transferSingleAttributeIntoFour("margin", node->style, selfCssAttributesCache);
+    refreshCache();
 
     node->cssPropertyIndexCache = selfCssAttributesCache;
+
+    /* converting 'padding' and 'margin' into seperate attributes */
 
     // inheritable flag of properties is set
     for(auto& property : node->style) {
@@ -433,6 +463,7 @@ void htmlParser::inheritCss(treeNode* node){
     }
 
 }
+
 
 void addDefaultStyle(std::string name, std::string value){
     cssProperty temp;
