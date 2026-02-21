@@ -14,10 +14,6 @@ enum dataType{
     none, tag, endTag, textData
 };
 
-enum tagType{
-    html, text
-};
-
 std::unordered_map<std::string, std::vector<cssProperty>> tagDefaults;
 std::vector<cssProperty> globalDefaults;
 

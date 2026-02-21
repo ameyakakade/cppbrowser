@@ -7,26 +7,32 @@ enum class displayType{
     displayBlock, displayInline
 };
 
+enum class nodeType{
+    text, html, inlineContainer
+};
+
 class layoutNode{
     public:
         std::vector<layoutNode*> children;
-        layoutNode* parent;
-        treeNode* originNode;
+        layoutNode*              parent;
+        treeNode*                originNode;
+        std::string              text;
 
         float height;
         float width;
         float x;
         float y;
 
-        float margin[4]; // top, bottom, right, left;
-        float padding[4]; // top, bottom, right, left;
-        // float borders[4]; // top, bottom, right, left;
+        float margin[4]  = {0};  // top, bottom, right, left;
+        float padding[4] = {0};  // top, bottom, right, left;
+      //float borders[4] = {0};  // top, bottom, right, left;
         
-        displayType display;
+        displayType display = displayType::displayBlock;
+        nodeType type       = nodeType::html;
         
-        Color color;
-        Color backgroundColor;
-        Color borderColor;
+        Color color           = BLACK;
+        Color backgroundColor = GetColor(0x00000000);
+        Color borderColor     = BLACK;
 };
 
 class layoutTree{
@@ -40,10 +46,11 @@ class layoutTree{
         Color convertStringToColor(std::string& input);
 
         layoutNode* layoutTreeRoot;
+        layoutNode* currentContainerNode = nullptr;
 
         // constants
         float emToPx = 16;
-        float scale = 1;
+        float scale  = 1;
 
         float windowHeight;
         float windowWidth;

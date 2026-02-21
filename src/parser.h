@@ -15,6 +15,10 @@ struct attributes{
     std::string value;
 };
 
+enum tagType{
+    html, text
+};
+
 void addDefaults(std::string name, std::string input);
 void addGlobalDefaults(std::string input);
 

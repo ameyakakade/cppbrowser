@@ -14,12 +14,13 @@ void renderLayoutTree(layoutNode* node){
     for(auto child : node->children){
         renderLayoutTree(child);
     }
+        DrawText("hi", 20, 20, 16, BLACK);
 }
 
 int main(){
     
     // converting address to ip and getting html from server
-    std::string test = "http://127.0.0.1/colorfuldivs.html";
+    std::string test = "http://127.0.0.1/index.html";
     urlReader testReader;
     testReader.read(test);
     std::string header, body;
