@@ -178,29 +178,29 @@ float layoutTree::calculateLayoutPass(layoutNode* node, float availableWidth){
     float nodeHeight = 0;
 
     // node width is available width minus left and right margin
-    nodeWidth = availableWidth - (node->margin[2] + node->margin[3]);
+    nodeWidth = availableWidth - (node->margin[2] + node->margin[3])*scale;
     
-    node->x = cursorX + node->margin[3];
-    node->y = cursorY + node->margin[0];
+    node->x = cursorX + node->margin[3]*scale;
+    node->y = cursorY + node->margin[0]*scale;
 
-    cursorX = node->x + node->padding[3];
-    cursorY = node->y + node->padding[0];
+    cursorX = node->x + node->padding[3]*scale;
+    cursorY = node->y + node->padding[0]*scale;
 
-    float newAvailableWidth = nodeWidth - (node->padding[2] + node->padding[3]);
+    float newAvailableWidth = nodeWidth - (node->padding[2] + node->padding[3])*scale;
 
     for(auto child : node->children){
         nodeHeight += calculateLayoutPass(child, newAvailableWidth);
     }
 
-    nodeHeight += (node->padding[0] + node->padding[1]);
+    nodeHeight += (node->padding[0] + node->padding[1])*scale;
 
-    cursorX = node->x - node->margin[3];
-    cursorY = node->y + nodeHeight + node->margin[1];
+    cursorX = node->x - node->margin[3]*scale;
+    cursorY = node->y + nodeHeight + node->margin[1]*scale;
 
     node->height = nodeHeight;
     node->width  = nodeWidth;
 
-    return nodeHeight + (node->margin[0] + node->margin[1]);
+    return nodeHeight + (node->margin[0] + node->margin[1])*scale;
 }
 
 

@@ -19,7 +19,7 @@ void renderLayoutTree(layoutNode* node){
 int main(){
     
     // converting address to ip and getting html from server
-    std::string test = "http://127.0.0.1/index.html";
+    std::string test = "http://127.0.0.1/colorfuldivs.html";
     urlReader testReader;
     testReader.read(test);
     std::string header, body;
