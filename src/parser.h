@@ -24,7 +24,7 @@ class treeNode{
         treeNode* parentNode;
         std::vector<treeNode*> children;
         std::string name;
-        std::string text;
+        int type;
         std::string rawAttributes;
         std::vector<cssProperty> style;
         std::unordered_map<std::string, size_t> cssPropertyIndexCache;

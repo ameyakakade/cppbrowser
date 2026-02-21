@@ -14,6 +14,10 @@ enum dataType{
     none, tag, endTag, textData
 };
 
+enum tagType{
+    html, text
+};
+
 std::unordered_map<std::string, std::vector<cssProperty>> tagDefaults;
 std::vector<cssProperty> globalDefaults;
 
@@ -139,7 +143,10 @@ void htmlParser::parse(std::string input){
                 bool check = false;
                 for(char c : data) check = check or (c != ' ') and (c != '\n') and (c != '\t');
                 if(check){
-                    curr->text = data;
+                    treeNode* textNode = new treeNode("textNode", curr);
+                    textNode->nodeAttributes.push_back({"text", data});
+                    textNode->type = text;
+                    curr->children.push_back(textNode);
                 }
                 data.clear();
                 attributes.clear();
@@ -163,6 +170,7 @@ void htmlParser::parse(std::string input){
                 for(char c : attributes) check = check or (c != ' ') and (c != '\n') and (c != '\t');
                 if(type == tag){
                     treeNode* temp = new treeNode(data, curr);
+                    temp->type = html;
                     curr->children.emplace_back(temp);
                     if(check){
                         temp->rawAttributes = attributes;
@@ -260,10 +268,11 @@ void htmlParser::traverse(treeNode* node, int level){
     for(int i=0; i<level; i++){
         indent += "   ";
     }
-    std::cout << indent << node->name << node->text << std::endl;
-    // for(auto property : node->nodeAttributes){
-    //     std::cout << " Attribute " << property.name << "->" << property.value;
-    // }
+    std::cout << indent << node->name << std::endl;
+
+    for(auto property : node->nodeAttributes){
+        std::cout << indent << " Attribute " << property.name << "->" << property.value << std::endl;
+    }
     
     for(auto property : node->style){
         std::cout << indent << "    " << property.name << " : " << property.value << std::endl;
