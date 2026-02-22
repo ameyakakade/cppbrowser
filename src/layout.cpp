@@ -89,6 +89,16 @@ void layoutTree::makeLayoutTree(treeNode* node, layoutNode* parentLayout){
     // filling the background color 
     currentLayoutNode->color = convertStringToColor(node->style[node->cssPropertyIndexCache["color"]].value);
 
+    layoutNode* temp = currentContainerNode;
+    currentContainerNode = nullptr;
+
+    // now we have to recurse and add layout nodes for all children of the treenode which will be linked to current layout node
+    for(auto child : node->children){
+        makeLayoutTree(child, currentLayoutNode);
+    }
+
+    currentContainerNode = temp;
+
     // add it to children of parent layout node if block
     // or add to the last container node if inline. if last node doesnt exist make a new one
     if(currentLayoutNode->display == displayType::displayBlock){
@@ -106,10 +116,6 @@ void layoutTree::makeLayoutTree(treeNode* node, layoutNode* parentLayout){
     }
 
 
-    // now we have to recurse and add layout nodes for all children of the treenode which will be linked to current layout node
-    for(auto child : node->children){
-        makeLayoutTree(child, currentLayoutNode);
-    }
 
 }
 
