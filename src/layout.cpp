@@ -46,7 +46,7 @@ std::unordered_map<std::string, Color> stringToColorMap = {
         {"BROWN",        GetColor(0xA52A2AFF)},
         {"MAROON",       GetColor(0x800000FF)},
 
-        {"TRANSPARENT",  GetColor(0x00000000)}
+        {"TRANSPARENT",  GetColor(0x000000FF)}
 };
 
 // body and root node
@@ -79,6 +79,12 @@ void layoutTree::makeLayoutTree(treeNode* node, layoutNode* parentLayout){
     // filling the node type 
     if(node->type == text){
         currentLayoutNode->type = nodeType::text;
+        for(auto a : node->nodeAttributes){
+            if(a.name == "text"){
+                currentLayoutNode->text = a.value;
+                break;
+            }
+        }
     }else if(node->type == html){
         currentLayoutNode->type = nodeType::html;
     }
@@ -89,6 +95,7 @@ void layoutTree::makeLayoutTree(treeNode* node, layoutNode* parentLayout){
     // filling the background color 
     currentLayoutNode->color = convertStringToColor(node->style[node->cssPropertyIndexCache["color"]].value);
 
+    // store the current container node and make it null so that children are forced to make their own container nodes
     layoutNode* temp = currentContainerNode;
     currentContainerNode = nullptr;
 
@@ -97,6 +104,8 @@ void layoutTree::makeLayoutTree(treeNode* node, layoutNode* parentLayout){
         makeLayoutTree(child, currentLayoutNode);
     }
 
+    // set the current container node to temp
+    // this way children do not get added to the wrong container node and tree structure for inline elements is preserved
     currentContainerNode = temp;
 
     // add it to children of parent layout node if block
@@ -125,11 +134,13 @@ void layoutTree::traverse(layoutNode* node, int level){
         indent += "   ";
     }
     if(node->originNode){ std::cout << indent << node->originNode->name << " ";}
-    else { std::cout << indent << "container node ";}
+    else if(node->type == nodeType::inlineContainer){ std::cout << indent << "container node ";}
+    else if(node->type == nodeType::lineContainer){ std::cout << indent << "line ";}
     std::cout << " " << " height:" << node->height;
     std::cout << " " << "  width:" << node->width;
     std::cout << " " << "      x:" << node->x;
     std::cout << " " << "      y:" << node->y;
+    std::cout << " " << node->text;
 
     std::cout << "\n";
     for(auto child : node->children){
@@ -210,56 +221,143 @@ float layoutTree::calculateLayoutPass(layoutNode* node, float availableWidth){
     float nodeWidth;
     float nodeHeight = 0;
 
-    if(node->type == nodeType::html){
+    switch(node->type) {
+        case nodeType::html: {
+            // node width is available width minus left and right margin
+            nodeWidth = availableWidth - (node->margin[2] + node->margin[3])*scale;
+            
+            node->x = cursorX + node->margin[3]*scale;
+            node->y = cursorY + node->margin[0]*scale;
 
-        // node width is available width minus left and right margin
-        nodeWidth = availableWidth - (node->margin[2] + node->margin[3])*scale;
-        
-        node->x = cursorX + node->margin[3]*scale;
-        node->y = cursorY + node->margin[0]*scale;
+            cursorX = node->x + node->padding[3]*scale;
+            cursorY = node->y + node->padding[0]*scale;
 
-        cursorX = node->x + node->padding[3]*scale;
-        cursorY = node->y + node->padding[0]*scale;
+            float newAvailableWidth = nodeWidth - (node->padding[2] + node->padding[3])*scale;
 
-        float newAvailableWidth = nodeWidth - (node->padding[2] + node->padding[3])*scale;
-
-        for(auto child : node->children){
-            nodeHeight += calculateLayoutPass(child, newAvailableWidth);
-        }
-
-        nodeHeight += (node->padding[0] + node->padding[1])*scale;
-
-        cursorX = node->x - node->margin[3]*scale;
-        cursorY = node->y + nodeHeight + node->margin[1]*scale;
-
-        node->height = nodeHeight;
-        node->width  = nodeWidth;
-
-        return nodeHeight + (node->margin[0] + node->margin[1])*scale;
-
-    }else if(node->type == nodeType::text){
-
-        for(auto attribute : node->originNode->nodeAttributes){
-            if(attribute.name == "text"){
-                node->text = attribute.value;
-                break;
+            for(auto child : node->children){
+                nodeHeight += calculateLayoutPass(child, newAvailableWidth);
             }
+
+            nodeHeight += (node->padding[0] + node->padding[1])*scale;
+
+            cursorX = node->x - node->margin[3]*scale;
+            cursorY = node->y + nodeHeight + node->margin[1]*scale;
+
+            node->height = nodeHeight;
+            node->width  = nodeWidth;
+
+            return nodeHeight + (node->margin[0] + node->margin[1])*scale;
         }
-        cssProperty* size = &node->originNode->style[node->originNode->cssPropertyIndexCache["font-size"]];
-        int fontSize      = convertStringToPx(size->value);
-        nodeWidth         = MeasureText("hello", fontSize);
-        nodeHeight        = fontSize;
 
+        case nodeType::inlineContainer: {
+            // work on all the children elements and recurse only for elements that may have children
+            // text cannot have children so divide it up into more text nodes and put them in line containers
+            // inline container node will have no margin or padding because that will be handled by its parent node
+            
+            // make sure to store the width of these line containers
+            std::vector<layoutNode*> lineContainers;
 
-        std::cout << nodeWidth << " " << nodeHeight << node->text.c_str() << std::endl;
+            for(auto child : node->children){
 
-        return nodeHeight;
+                switch(child->type){
+                    case nodeType::text: {
+
+                        std::cout << "Text node detected in container node" << std::endl;
+                        std::cout << "TO DO: Refactor the code to create new line containers to a helper function" << std::endl;
+
+                        // use this to check if somethings can be fit in the previous line
+                        // after checking it set the bool to false and never check again for this child
+                        bool checkLastLine = false;
+
+                        std::string tempString;
+                        std::string word;
+                        int fontSize = 16;
+
+                        for(auto c : child->text + " "){
+                            if(c == ' '){
+                                // do the checks and if we hit the max word length make a new line container
+                                word += c;
+                                
+                                float width = MeasureText((tempString+word).c_str(), fontSize);
+                                if(width >= availableWidth){
+                                    if(!checkLastLine){
+
+                                        layoutNode* temp = new layoutNode();
+                                        temp->parent = node;
+                                        lineContainers.push_back(temp);
+                                        temp->type = nodeType::lineContainer;
+
+                                        layoutNode* tempchild = new layoutNode();
+                                        tempchild->type = nodeType::text;
+                                        // make sure to copy attributes of the parent text node
+                                        tempchild->originNode = child->originNode;
+                                        tempchild->parent = temp;
+                                        tempchild->text = tempString;
+                                        tempchild->width = MeasureText(tempString.c_str(), fontSize);
+
+                                        temp->children.push_back(tempchild);
+                                    }
+
+                                    tempString.clear();
+                                }
+
+                                tempString += word;
+                                word.clear();
+                            }else{
+                                word += c;
+                            }
+                        }
+
+                        // add the last line as a line container too
+                        {
+                            layoutNode* temp = new layoutNode();
+                            temp->parent = node;
+                            lineContainers.push_back(temp);
+                            temp->type = nodeType::lineContainer;
+
+                            layoutNode* tempchild = new layoutNode();
+                            tempchild->type = nodeType::text;
+                            // make sure to copy attributes of the parent text node
+                            tempchild->originNode = child->originNode;
+                            tempchild->parent = temp;
+                            tempchild->text = tempString;
+                            tempchild->width = MeasureText(tempString.c_str(), fontSize);
+
+                            temp->children.push_back(tempchild);
+                        }
+
+                        delete child;
+                        break;
+
+                    }
+
+                    default: std::cout << "Default node detected in container node" << std::endl;
+
+                }
+
+            }
+
+            node->children = lineContainers;
+            return nodeHeight;
+        }
+
+        case nodeType::lineContainer: {
+            std::cout << "line node detected" << std::endl;
+            return nodeHeight;
+        }
+
+        case nodeType::text: {
+            std::cout << "text node detected" << std::endl;
+            return nodeHeight;
+        }
+
+        case nodeType::image: {
+            std::cout << "image node detected" << std::endl;
+            return nodeHeight;
+        }
 
     }
-
-    return nodeHeight;
 }
-
 
 Color layoutTree::convertStringToColor(std::string& input){
     std::string temp;
@@ -276,7 +374,7 @@ Color layoutTree::convertStringToColor(std::string& input){
         }
     }
 
-    Color value = WHITE;
+    Color value = GetColor(0x00000000);
     
     if(stringToColorMap.count(temp) == 1) value = stringToColorMap[temp];
 

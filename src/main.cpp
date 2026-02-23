@@ -14,10 +14,13 @@ void renderLayoutTree(layoutNode* node){
     for(auto child : node->children){
         renderLayoutTree(child);
     }
-        DrawText("hi", 20, 20, 16, BLACK);
 }
 
 int main(){
+
+
+    SetConfigFlags(FLAG_WINDOW_HIGHDPI);
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "html viewer");
     
     // converting address to ip and getting html from server
     std::string test = "http://127.0.0.1/index.html";
@@ -79,9 +82,6 @@ int main(){
     layoutRenderTree.traverse(layoutRenderTree.layoutTreeRoot, 0);
 
     // rendering 
-
-    SetConfigFlags(FLAG_WINDOW_HIGHDPI);
-    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "html viewer");
 
     while (!WindowShouldClose())
     {

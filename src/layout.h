@@ -8,7 +8,7 @@ enum class displayType{
 };
 
 enum class nodeType{
-    text, html, inlineContainer
+    text, html, image, inlineContainer, lineContainer
 };
 
 class layoutNode{
@@ -23,9 +23,9 @@ class layoutNode{
         float x;
         float y;
 
-        float margin[4]  = {0};  // top, bottom, right, left;
-        float padding[4] = {0};  // top, bottom, right, left;
-      //float borders[4] = {0};  // top, bottom, right, left;
+        float margin[4]  = {0};  // top, bottom, right, left
+        float padding[4] = {0};  // top, bottom, right, left
+      //float borders[4] = {0};  // top, bottom, right, left
         
         displayType display = displayType::displayBlock;
         nodeType type       = nodeType::html;
