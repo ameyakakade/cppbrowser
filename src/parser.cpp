@@ -139,13 +139,19 @@ void htmlParser::parse(std::string input){
                 // replacing whitespace characters with spaces
                 std::string temp;
                 bool state = false;
+                bool start = true;
                 for(char c : data){
                     if(c == '\n' or c == '\t' or c == '\r') state = true;
                     else{
                         if(state){
                             if(c != ' '){
-                                temp += ' ';
-                                temp += c;
+                                if(!start){
+                                    temp += ' ';
+                                    temp += c;
+                                }else{
+                                    temp += c;
+                                    start = false;
+                                }
                                 state = false;
                             } 
                         }else{
@@ -158,7 +164,13 @@ void htmlParser::parse(std::string input){
 
                 // init data when we start reading smth
                 bool check = false;
-                for(char c : data) check = check or (c != ' ');
+                for(char c : data){
+                    if(c != ' '){
+                        check = true;
+                        break;
+                    }
+                } 
+
                 if(check){
                     if(curr->name == "b" or curr->name == "span" ){
                         curr->nodeAttributes.push_back({"text", data});
