@@ -4,8 +4,6 @@
 #include "parser.h"
 #include "layout.h"
 
-#define WINDOW_HEIGHT 900
-#define WINDOW_WIDTH 600
 
 
 void renderLayoutTree(layoutNode* node){
@@ -25,13 +23,16 @@ void renderLayoutTree(layoutNode* node){
 
 int main(){
 
+    int WINDOW_HEIGHT = 900;
+    int WINDOW_WIDTH  = 600;
+
     SetConfigFlags(FLAG_WINDOW_HIGHDPI);
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "html viewer");
     SetTargetFPS(60);
 
 
     // converting address to ip and getting html from server
-    std::string test = "http://127.0.0.1/csstest.html";
+    std::string test = "http://127.0.0.1/test2.html";
     urlReader testReader;
     testReader.read(test);
     std::string header, body;
@@ -42,10 +43,10 @@ int main(){
     addDefaults("body",   "display: block; margin-top: 8px; margin-bottom:8px; margin-right: 8px; margin-left: 8px;");
     addDefaults("p",      "display: block; margin-top: 1em; margin-bottom: 1em;");
     addDefaults("div",    "display: block;");
-    addDefaults("h1",     "display: block; font-size: 2em; font-weight: bold; margin-top: 0.67em; margin-bottom: 0.67em; ");
-    addDefaults("h2",     "display: block; font-size: 1.5em; font-weight: bold; margin-top: 0.75em; margin-bottom: 0.75em; ");
-    addDefaults("h3",     "display: block; font-size: 1.17em; font-weight: bold; margin-top: 0.83em; margin-bottom: 0.83em; ");
-    addDefaults("span",   "display: inline; ");
+    addDefaults("h1",     "display: block; font-size: 2em; font-weight: bold; margin-top: 0.67em; margin-bottom: 0.67em;");
+    addDefaults("h2",     "display: block; font-size: 1.5em; font-weight: bold; margin-top: 0.75em; margin-bottom: 0.75em;");
+    addDefaults("h3",     "display: block; font-size: 1.17em; font-weight: bold; margin-top: 0.83em; margin-bottom: 0.83em;");
+    addDefaults("span",   "display: inline;");
     addDefaults("strong", "display: inline; font-weight: bold;");
     addDefaults("em",     "display: inline; font-style: italic;");
     addDefaults("a",      "display: inline; color: blue; text-decoration: underline; cursor: pointer;");

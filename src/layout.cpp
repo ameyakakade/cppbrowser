@@ -222,140 +222,13 @@ float layoutTree::calculateLayoutPass(layoutNode* node, float availableWidth){
     float nodeWidth;
     float nodeHeight = 0;
 
-    node->x = cursorX;
-    node->y = cursorY;
-
     switch(node->type) {
         case nodeType::html: {
-            // node width is available width minus left and right margin
-            nodeWidth = availableWidth - (node->margin[2] + node->margin[3])*scale;
-            
-            node->x = cursorX + node->margin[3]*scale;
-            node->y = cursorY + node->margin[0]*scale;
-
-            cursorX = node->x + node->padding[3]*scale;
-            cursorY = node->y + node->padding[0]*scale;
-
-            float newAvailableWidth = nodeWidth - (node->padding[2] + node->padding[3])*scale;
-
-            for(auto child : node->children){
-                nodeHeight += calculateLayoutPass(child, newAvailableWidth);
-            }
-
-            nodeHeight += (node->padding[0] + node->padding[1])*scale;
-
-            cursorX = node->x - node->margin[3]*scale;
-            cursorY = node->y + nodeHeight + node->margin[1]*scale;
-
-            node->height = nodeHeight;
-            node->width  = nodeWidth;
-
-            return nodeHeight + (node->margin[0] + node->margin[1])*scale;
+            return calculateLayoutBlock(node, availableWidth);
         }
 
         case nodeType::inlineContainer: {
-            // work on all the children elements and recurse only for elements that may have children
-            // text cannot have children so divide it up into more text nodes and put them in line containers
-            // inline container node will have no margin or padding because that will be handled by its parent node
-            
-            // make sure to store the width of these line containers
-            std::vector<layoutNode*> lineContainers;
-
-            for(auto child : node->children){
-
-                switch(child->type){
-                    case nodeType::text: {
-
-                        node->fontSize = 20;
-
-                        std::cout << "Text node detected in container node" << std::endl;
-                        std::cout << "TO DO: Refactor the code to create new line containers to a helper function" << std::endl;
-
-                        // use this to check if somethings can be fit in the previous line
-                        // after checking it set the bool to false and never check again for this child
-                        bool checkLastLine = false;
-
-                        std::string tempString;
-                        std::string word;
-
-                        for(auto c : child->text + " "){
-                            if(c == ' '){
-                                // do the checks and if we hit the max word length make a new line container
-                                word += c;
-                                
-                                float width = MeasureText((tempString+word).c_str(), node->fontSize);
-                                if(width >= availableWidth){
-                                    if(!checkLastLine){
-
-                                        layoutNode* temp = new layoutNode();
-                                        temp->parent = node;
-                                        lineContainers.push_back(temp);
-                                        temp->type = nodeType::lineContainer;
-
-                                        layoutNode* tempchild = new layoutNode();
-                                        tempchild->type = nodeType::text;
-                                        tempchild->originNode = child->originNode;
-                                        tempchild->parent = temp;
-                                        tempchild->text = tempString;
-                                        tempchild->width = MeasureText(tempString.c_str(), node->fontSize);
-                                        tempchild->fontSize = node->fontSize;
-                                        // make sure to copy attributes of the parent text node
-
-                                        temp->children.push_back(tempchild);
-                                    }
-
-                                    tempString.clear();
-                                }
-
-                                tempString += word;
-                                word.clear();
-                            }else{
-                                word += c;
-                            }
-                        }
-
-                        // add the last line as a line container too
-                        {
-                            layoutNode* temp = new layoutNode();
-                            temp->parent = node;
-                            lineContainers.push_back(temp);
-                            temp->type = nodeType::lineContainer;
-
-                            layoutNode* tempchild = new layoutNode();
-                            tempchild->type = nodeType::text;
-                            // make sure to copy attributes of the parent text node
-                            tempchild->originNode = child->originNode;
-                            tempchild->parent = temp;
-                            tempchild->text = tempString;
-                            tempchild->width = MeasureText(tempString.c_str(), node->fontSize);
-                            tempchild->fontSize = node->fontSize;
-
-                            temp->children.push_back(tempchild);
-                        }
-
-                        delete child;
-                        break;
-
-                    }
-
-                    default: /* std::cout << "Default node detected in container node" << std::endl*/ ; 
-
-                }
-
-            }
-
-            node->children = lineContainers;
-
-            for(auto line : node->children){
-                nodeHeight += calculateLayoutPass(line, availableWidth);
-            }
-
-            node->height = nodeHeight;
-            node->width  = availableWidth;
-
-            cursorY += nodeHeight;
-
-            return nodeHeight;
+            return calculateLayoutInlineContainer(node, availableWidth);
         }
 
         case nodeType::lineContainer: {
@@ -388,6 +261,149 @@ float layoutTree::calculateLayoutPass(layoutNode* node, float availableWidth){
         }
 
     }
+}
+
+float layoutTree::calculateLayoutBlock(layoutNode* node, float availableWidth){
+    float nodeWidth;
+    float nodeHeight = 0;
+
+    // node width is available width minus left and right margin
+    nodeWidth = availableWidth - (node->margin[2] + node->margin[3])*scale;
+    
+    node->x = cursorX + node->margin[3]*scale;
+    node->y = cursorY + node->margin[0]*scale;
+
+    cursorX = node->x + node->padding[3]*scale;
+    cursorY = node->y + node->padding[0]*scale;
+
+    float newAvailableWidth = nodeWidth - (node->padding[2] + node->padding[3])*scale;
+
+    for(auto child : node->children){
+        nodeHeight += calculateLayoutPass(child, newAvailableWidth);
+    }
+
+    nodeHeight += (node->padding[0] + node->padding[1])*scale;
+
+    cursorX = node->x - node->margin[3]*scale;
+    cursorY = node->y + nodeHeight + node->margin[1]*scale;
+
+    node->height = nodeHeight;
+    node->width  = nodeWidth;
+
+    return nodeHeight + (node->margin[0] + node->margin[1])*scale;
+}
+
+float layoutTree::calculateLayoutInlineContainer(layoutNode* node, float availableWidth){
+
+    // work on all the children elements and recurse only for elements that may have children
+    // text cannot have children so divide it up into more text nodes and put them in line containers
+    // inline container node will have no margin or padding because that will be handled by its parent node
+    
+    // make sure to store the width of these line containers
+
+    float nodeHeight = 0;
+    std::vector<layoutNode*> lineContainers;
+
+    for(auto child : node->children){
+
+        switch(child->type){
+
+            case nodeType::text: {
+            seperateLineText(node, child, availableWidth, lineContainers);
+            break;
+            }
+
+            default: /* std::cout << "Default node detected in container node" << std::endl*/ ; 
+
+        }
+
+    }
+
+    node->children = lineContainers;
+
+    for(auto line : node->children){
+        nodeHeight += calculateLayoutPass(line, availableWidth);
+    }
+
+    node->height = nodeHeight;
+    node->width  = availableWidth;
+
+    cursorY += nodeHeight;
+
+    return nodeHeight;
+
+}
+
+void layoutTree::seperateLineText(layoutNode* node, layoutNode* child, float availableWidth, std::vector<layoutNode*>& lineContainers){
+
+    node->fontSize = 20;
+
+    std::cout << "Text node detected in container node" << std::endl;
+
+    // use this to check if somethings can be fit in the previous line
+    // after checking it set the bool to false and never check again for this child
+    bool checkLastLine = false;
+
+    std::string tempString;
+    std::string word;
+
+    for(auto c : child->text + " "){
+        if(c == ' '){
+            // do the checks and if we hit the max word length make a new line container
+            word += c;
+            
+            float width = MeasureText((tempString+word).c_str(), node->fontSize);
+            if(width >= availableWidth){
+                if(!checkLastLine){
+
+                    layoutNode* temp = new layoutNode();
+                    temp->parent = node;
+                    lineContainers.push_back(temp);
+                    temp->type = nodeType::lineContainer;
+
+                    layoutNode* tempchild = new layoutNode();
+                    tempchild->type = nodeType::text;
+                    tempchild->originNode = child->originNode;
+                    tempchild->parent = temp;
+                    tempchild->text = tempString;
+                    tempchild->width = MeasureText(tempString.c_str(), node->fontSize);
+                    tempchild->fontSize = node->fontSize;
+                    // make sure to copy attributes of the parent text node
+
+                    temp->children.push_back(tempchild);
+                }
+
+                tempString.clear();
+            }
+
+            tempString += word;
+            word.clear();
+        }else{
+            word += c;
+        }
+    }
+
+    // add the last line as a line container too
+    {
+        layoutNode* temp = new layoutNode();
+        temp->parent = node;
+        lineContainers.push_back(temp);
+        temp->type = nodeType::lineContainer;
+
+        layoutNode* tempchild = new layoutNode();
+        tempchild->type = nodeType::text;
+        // make sure to copy attributes of the parent text node
+        tempchild->originNode = child->originNode;
+        tempchild->parent = temp;
+        tempchild->text = tempString;
+        tempchild->width = MeasureText(tempString.c_str(), node->fontSize);
+        tempchild->fontSize = node->fontSize;
+
+        temp->children.push_back(tempchild);
+    }
+
+    delete child;
+
 }
 
 Color layoutTree::convertStringToColor(std::string& input){

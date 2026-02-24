@@ -58,4 +58,14 @@ class layoutTree{
         float windowWidth;
         float cursorX = 0;
         float cursorY = 0;
+
+    private:
+        // these functions are called depending on type of node encountered.
+        // these functions then call the calculate layout pass function for their children
+        // calculate layout pass just switchs to these functions
+        float calculateLayoutBlock(layoutNode* node, float availableWidth);
+        float calculateLayoutInlineContainer(layoutNode* node, float availableWidth);
+
+        // these functions are used to calculate layout inside inline containers
+        void seperateLineText(layoutNode* node, layoutNode* child, float availableWidth, std::vector<layoutNode*>& lineContainers);
 };
