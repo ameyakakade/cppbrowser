@@ -49,6 +49,30 @@ std::unordered_map<std::string, Color> stringToColorMap = {
         {"TRANSPARENT",  GetColor(0x00000000)}
 };
 
+layoutNode* layoutNode::returnClone(){
+    layoutNode* value = new layoutNode();
+    
+    value->height           = height;
+    value->width            = width;
+    value->x                = x;
+    value->y                = y;
+
+    for(int i = 0; i<4; i++){
+        value->margin[i] = margin[i];
+        value->padding[i] = padding[i];
+    }
+
+    value->fontSize         = fontSize;
+
+    value->display          = display;
+    value->type             = type;
+
+    value->color            = color;
+    value->backgroundColor  = backgroundColor;
+
+    return value;
+}
+
 // body and root node
 void layoutTree::makeLayoutTree(treeNode* node, layoutNode* parentLayout){
 
@@ -94,7 +118,7 @@ void layoutTree::makeLayoutTree(treeNode* node, layoutNode* parentLayout){
 
     // filling the background color 
     currentLayoutNode->color = convertStringToColor(node->style[node->cssPropertyIndexCache["color"]].value);
-    std::cout << node->style[node->cssPropertyIndexCache["color"]].value;
+    std::cout << "filling the color of" << node->name << std::endl;
 
     // store the current container node and make it null so that children are forced to make their own container nodes
     layoutNode* temp = currentContainerNode;
@@ -137,6 +161,7 @@ void layoutTree::traverse(layoutNode* node, int level){
     if(node->originNode){ std::cout << indent << node->originNode->name << " ";}
     else if(node->type == nodeType::inlineContainer){ std::cout << indent << "container node ";}
     else if(node->type == nodeType::lineContainer){ std::cout << indent << "line ";}
+    std::cout << (int)node->color.r << (int)node->color.g << (int)node->color.b << (int)node->color.a ;
     std::cout << " " << " height:" << node->height;
     std::cout << " " << "  width:" << node->width;
     std::cout << " " << "      x:" << node->x;
@@ -347,6 +372,25 @@ void layoutTree::seperateLineText(layoutNode* node, layoutNode* child, float ava
     std::string tempString;
     std::string word;
 
+    // lambda to create a new line container
+    auto createLineContainer = [&](){
+        layoutNode* temp = new layoutNode();
+        temp->parent = node;
+        lineContainers.push_back(temp);
+        temp->type = nodeType::lineContainer;
+
+        layoutNode* tempchild = node->returnClone();
+        tempchild->type = nodeType::text;
+        tempchild->originNode = child->originNode;
+        tempchild->parent = temp;
+        tempchild->text = tempString;
+        tempchild->width = MeasureText(tempString.c_str(), node->fontSize);
+        tempchild->fontSize = node->fontSize;
+        // make sure to copy attributes of the parent text node
+
+        temp->children.push_back(tempchild);
+    };
+
     for(auto c : child->text + " "){
         if(c == ' '){
             // do the checks and if we hit the max word length make a new line container
@@ -354,23 +398,11 @@ void layoutTree::seperateLineText(layoutNode* node, layoutNode* child, float ava
             
             float width = MeasureText((tempString+word).c_str(), node->fontSize);
             if(width >= availableWidth){
+
                 if(!checkLastLine){
-
-                    layoutNode* temp = new layoutNode();
-                    temp->parent = node;
-                    lineContainers.push_back(temp);
-                    temp->type = nodeType::lineContainer;
-
-                    layoutNode* tempchild = new layoutNode();
-                    tempchild->type = nodeType::text;
-                    tempchild->originNode = child->originNode;
-                    tempchild->parent = temp;
-                    tempchild->text = tempString;
-                    tempchild->width = MeasureText(tempString.c_str(), node->fontSize);
-                    tempchild->fontSize = node->fontSize;
-                    // make sure to copy attributes of the parent text node
-
-                    temp->children.push_back(tempchild);
+                    createLineContainer();
+                }else{
+                    // check if you can fit things in the last line container
                 }
 
                 tempString.clear();
@@ -384,23 +416,7 @@ void layoutTree::seperateLineText(layoutNode* node, layoutNode* child, float ava
     }
 
     // add the last line as a line container too
-    {
-        layoutNode* temp = new layoutNode();
-        temp->parent = node;
-        lineContainers.push_back(temp);
-        temp->type = nodeType::lineContainer;
-
-        layoutNode* tempchild = new layoutNode();
-        tempchild->type = nodeType::text;
-        // make sure to copy attributes of the parent text node
-        tempchild->originNode = child->originNode;
-        tempchild->parent = temp;
-        tempchild->text = tempString;
-        tempchild->width = MeasureText(tempString.c_str(), node->fontSize);
-        tempchild->fontSize = node->fontSize;
-
-        temp->children.push_back(tempchild);
-    }
+    createLineContainer();
 
     delete child;
 
@@ -424,8 +440,7 @@ Color layoutTree::convertStringToColor(std::string& input){
     Color value = GetColor(0x00000000);
     
     if(stringToColorMap.count(temp) == 1) value = stringToColorMap[temp];
-    else{ std::cout << "not found " << std::endl;}
-    std::cout << temp << std::endl;
+    else{ std::cout << "Color not found " << std::endl;}
 
     return value;
 }

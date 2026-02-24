@@ -35,6 +35,8 @@ class layoutNode{
         Color color           = BLACK;
         Color backgroundColor = GetColor(0x00000000);
         Color borderColor     = BLACK;
+
+        layoutNode* returnClone();
 };
 
 class layoutTree{
