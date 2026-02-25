@@ -38,6 +38,8 @@ class layoutNode{
         Color borderColor     = BLACK;
 
         layoutNode* returnClone();
+
+        ~layoutNode();
 };
 
 class layoutTree{
@@ -55,7 +57,7 @@ class layoutTree{
 
         // constants
         float emToPx = 16;
-        float scale  = 3;
+        float scale  = 1;
 
         float windowHeight;
         float windowWidth;
