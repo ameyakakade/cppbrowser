@@ -327,6 +327,7 @@ float layoutTree::calculateLayoutInlineContainer(layoutNode* node, float availab
     node->x = cursorX;
     node->y = cursorY;
 
+
     for(auto child : node->children){
 
         switch(child->type){
@@ -364,6 +365,8 @@ float layoutTree::calculateLayoutLineContainer(layoutNode* node, float available
     node->x = cursorX;
     node->y = cursorY;
 
+    float oldcursorX = cursorX;
+
     // get the largest element of all
     for(auto child : node->children){
         float tempAscender = 0;
@@ -383,21 +386,30 @@ float layoutTree::calculateLayoutLineContainer(layoutNode* node, float available
         if(tempDescender > nodeHeight) descender  = tempDescender;
     }
     
+    node->height = nodeHeight;
+
     for(auto child : node->children){
         calculateLayoutPass(child, availableWidth);
     }
 
+    cursorX = oldcursorX;
     cursorY += nodeHeight;
-    node->height = nodeHeight;
     return nodeHeight;
 }
 
 float layoutTree::calculateLayoutText(layoutNode* node, float availableWidth){
     float nodeHeight = 0;
+    float lineHeight = 0;
+    if(node->parent) lineHeight = node->parent->height;
+    else std::cout << "Text node isnt inside a line" << std::endl;
 
     // get height of the line container and calculate based on it
+    float offset = lineHeight - node->height;
+
     node->x = cursorX;
-    node->y = cursorY;
+    node->y = cursorY + offset;
+
+    cursorX += node->width;
 
     return nodeHeight;
 }
@@ -409,10 +421,30 @@ void layoutTree::seperateLineText(layoutNode* node, layoutNode* child, float ava
 
     // use this to check if somethings can be fit in the previous line
     // after checking it set the bool to false and never check again for this child
+    layoutNode* lastLine = nullptr;
+    if(!lineContainers.empty()) lastLine = lineContainers.back();
+
+    // only check if things fit in the last line if it exists
     bool checkLastLine = false;
+    if(lastLine) checkLastLine = true;
 
     std::string tempString;
     std::string word;
+
+    // lambda to add element to last line
+    auto addToLastLine = [&](layoutNode* temp){
+        layoutNode* tempchild = child->returnClone();
+        tempchild->type = nodeType::text;
+        tempchild->originNode = child->originNode;
+        tempchild->parent = temp;
+        tempchild->text = tempString;
+        tempchild->width = MeasureText(tempString.c_str(), child->fontSize);
+        tempchild->fontSize = child->fontSize;
+        // make sure to copy attributes of the parent text node
+
+        temp->width += tempchild->width;
+        temp->children.push_back(tempchild);
+    };
 
     // lambda to create a new line container
     auto createLineContainer = [&](){
@@ -421,7 +453,7 @@ void layoutTree::seperateLineText(layoutNode* node, layoutNode* child, float ava
         lineContainers.push_back(temp);
         temp->type = nodeType::lineContainer;
 
-        layoutNode* tempchild = node->returnClone();
+        layoutNode* tempchild = child->returnClone();
         tempchild->type = nodeType::text;
         tempchild->originNode = child->originNode;
         tempchild->parent = temp;
@@ -440,14 +472,19 @@ void layoutTree::seperateLineText(layoutNode* node, layoutNode* child, float ava
             word += c;
             
             float width = MeasureText((tempString+word).c_str(), child->fontSize);
-            if(width >= availableWidth){
 
-                if(!checkLastLine){
-                    createLineContainer();
-                }else{
-                    // check if you can fit things in the last line container
+            // add to the last line if possible
+            if(checkLastLine){
+                float widthRemain = availableWidth - lastLine->width;
+                if(width > widthRemain){
+                    addToLastLine(lastLine);
+                    checkLastLine = false;
+                    tempString.clear();
                 }
 
+            }else if(width >= availableWidth){
+
+                createLineContainer();
                 tempString.clear();
             }
 
@@ -458,8 +495,16 @@ void layoutTree::seperateLineText(layoutNode* node, layoutNode* child, float ava
         }
     }
 
-    // add the last line as a line container too
-    createLineContainer();
+
+    if(checkLastLine){
+        float width = MeasureText((tempString).c_str(), child->fontSize);
+        float widthRemain = availableWidth - lastLine->width;
+        if(width < widthRemain){
+            addToLastLine(lastLine);
+            checkLastLine = false;
+        }
+
+    }else createLineContainer();
 
     delete child;
 

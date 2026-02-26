@@ -10,8 +10,9 @@ void renderLayoutTree(layoutNode* node){
 
     switch(node->type){
         case nodeType::text: {
+            DrawRectangle(node->x, node->y, node->width, node->height, node->backgroundColor);
             DrawText(node->text.c_str(),  node->x, node->y , node->fontSize, node->color);
-
+            break;
         }
         default: DrawRectangle(node->x, node->y, node->width, node->height, node->backgroundColor);
     }
@@ -61,7 +62,7 @@ int main(){
 
 
     // converting address to ip and getting html from server
-    std::string test = "http://127.0.0.1/colorfuldivs.html";
+    std::string test = "http://127.0.0.1/wow.html";
     urlReader testReader;
     testReader.read(test);
     std::string header, body;
