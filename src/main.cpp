@@ -4,9 +4,20 @@
 #include "parser.h"
 #include "layout.h"
 
+int WINDOW_HEIGHT = 900;
+int WINDOW_WIDTH  = 1600;
 
+int ywindow = 0;
+
+bool inView(layoutNode* node, int yOffset){
+    if(node->y+yOffset+node->height < ywindow) return false;
+    if( node->y + yOffset> WINDOW_HEIGHT - ywindow) return false;
+    return true;
+}
 
 void renderLayoutTree(layoutNode* node, int yOffset){
+
+    if(!inView(node, yOffset)) return;
 
     switch(node->type){
         case nodeType::text: {
@@ -23,6 +34,8 @@ void renderLayoutTree(layoutNode* node, int yOffset){
 }
 
 void renderLayoutTreeDebug(layoutNode* node, int yOffset){
+
+    if(!inView(node, yOffset)) return;
 
     switch(node->type){
         case nodeType::text: {
@@ -53,8 +66,8 @@ void renderLayoutTreeDebug(layoutNode* node, int yOffset){
 
 int main(){
 
-    int WINDOW_HEIGHT = 900;
-    int WINDOW_WIDTH  = 1600;
+    WINDOW_HEIGHT = 900;
+    WINDOW_WIDTH  = 1600;
 
     SetConfigFlags(FLAG_WINDOW_HIGHDPI);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -108,15 +121,6 @@ int main(){
     /* making the layout tree object */
     layoutTree layoutRenderTree;
 
-    // make a root node for making layout tree
-    // layoutNode* temp = layoutRenderTree.layoutTreeRoot = new layoutNode;
-    // layoutRenderTree.makeLayoutTree(bodyNode, layoutRenderTree.layoutTreeRoot);
-    // we are not doing this for now ->
-        // discard the root node and make the new root the body node
-        // layoutRenderTree.layoutTreeRoot = layoutRenderTree.layoutTreeRoot->children[0];
-        // delete temp;
-
-
     // rendering 
     bool debugMode       = false;
     bool layoutTreeDirty = true;
@@ -127,6 +131,11 @@ int main(){
     while (!WindowShouldClose())
     {
         yOffset += GetMouseWheelMove()*scrollFactor;
+
+        // limit the scroll offset
+        if(yOffset>0) yOffset = 0;
+        if(layoutRenderTree.layoutTreeRoot) if(yOffset< -layoutRenderTree.layoutTreeRoot->children[0]->height+WINDOW_HEIGHT) yOffset = -layoutRenderTree.layoutTreeRoot->children[0]->height + WINDOW_HEIGHT;
+
         if (IsKeyDown(KEY_RIGHT)) debugMode = true;
         if (IsKeyDown(KEY_LEFT)) debugMode = false;
         if (IsKeyDown(KEY_UP)){
@@ -172,6 +181,10 @@ int main(){
             ClearBackground(BLACK);
             renderLayoutTreeDebug(layoutRenderTree.layoutTreeRoot, yOffset);
         }
+
+
+        DrawRectangle(0, 0 , WINDOW_WIDTH, ywindow, GetColor(0xfa25f744));
+        DrawRectangle(0, WINDOW_HEIGHT-ywindow , WINDOW_WIDTH, ywindow, GetColor(0xfa25f744));
 
         EndDrawing();
     }

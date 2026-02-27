@@ -404,7 +404,6 @@ void htmlParser::inheritCss(treeNode* node){
 
     /* Tag defaults pass end */
 
-
     /* Inline style pass */
 
     attributes styles;
