@@ -101,6 +101,8 @@ void htmlParser::parse(std::string input){
 
     for(auto letter : input){
 
+        putchar(letter);
+
         switch (letter){
 
             case '<':
@@ -172,7 +174,7 @@ void htmlParser::parse(std::string input){
                 } 
 
                 if(check){
-                    if(curr->name == "b" or curr->name == "span" ){
+                    if(curr->name == "b" or curr->name == "span" or curr->name == "a"){
                         curr->nodeAttributes.push_back({"text", data});
                         curr->type = text;
                     }else{
@@ -182,6 +184,12 @@ void htmlParser::parse(std::string input){
                         curr->children.push_back(textNode);
                     }
                 }
+                
+                // go to the parent if it is a self closing tag
+                if(curr->name == "meta" or curr->name == "link"){
+                    curr = curr->parentNode;
+                }
+
                 data.clear();
                 attributes.clear();
                 break;
@@ -202,6 +210,18 @@ void htmlParser::parse(std::string input){
             case readingTagEnd:{
                 bool check = false;
                 for(char c : attributes) check = check or (c != ' ') and (c != '\n') and (c != '\t');
+
+                if(data == "br" or data == "hr"){
+                    treeNode* temp = new treeNode(data, curr);
+                    temp->type = html;
+                    curr->children.emplace_back(temp);
+                    data.clear();
+                    attributes.clear();
+                    state = outside;
+                    type = textData;
+                    break;
+                }
+
                 if(type == tag){
                     treeNode* temp = new treeNode(data, curr);
                     temp->type = html;
@@ -215,6 +235,8 @@ void htmlParser::parse(std::string input){
                 }
                 data.clear();
                 attributes.clear();
+                state = outside;
+                type = textData;
                 break;
             }
 
@@ -348,7 +370,6 @@ void htmlParser::inheritCss(treeNode* node){
     /* Inheriting global defaults */
     node->style = globalDefaults;
 
-
     // store attributes of self with name and name and index in hashmap
 
     std::unordered_map<std::string, size_t> selfCssAttributesCache;
@@ -478,6 +499,7 @@ void htmlParser::inheritCss(treeNode* node){
 
     /* Inline style pass end */
     cacheDirty = transferSingleAttributeIntoFour("padding", node->style, selfCssAttributesCache);
+    refreshCache();
     cacheDirty = transferSingleAttributeIntoFour("margin", node->style, selfCssAttributesCache);
     refreshCache();
 

@@ -45,7 +45,7 @@ void renderLayoutTreeDebug(layoutNode* node, int yOffset){
         }
         case nodeType::inlineContainer:{
             DrawRectangleLines(node->x, node->y+yOffset , node->width, node->height, GREEN);
-            DrawRectangle(node->x, node->y+yOffset , node->width, node->height, GetColor(0x77d47933));
+            DrawRectangle(node->x, node->y+yOffset , node->width, node->height, GetColor(0x77d47988));
             break;
         }
         case nodeType::lineContainer:{
@@ -85,7 +85,7 @@ int main(){
 
     addGlobalDefaults("display: inline; color: black; background-color: transparent; font-size: 16px; font-weight: normal; font-style: normal; text-decoration: none; cursor: auto; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;");
 
-    addDefaults("body",   "display: block; margin-top: 8px; margin-bottom:8px; margin-right: 8px; margin-left: 8px;");
+    addDefaults("body",   "display: block; margin-top: 8px; margin-bottom:8px; margin-right: 8px; margin-left: 8px; background-color: WHITE;");
     addDefaults("p",      "display: block; margin-top: 1em; margin-bottom: 1em;");
     addDefaults("div",    "display: block;");
     addDefaults("h1",     "display: block; font-size: 2em; font-weight: bold; margin-top: 0.67em; margin-bottom: 0.67em;");
@@ -95,6 +95,8 @@ int main(){
     addDefaults("strong", "display: inline; font-weight: bold;");
     addDefaults("em",     "display: inline; font-style: italic;");
     addDefaults("a",      "display: inline; color: blue; text-decoration: underline; cursor: pointer;");
+    addDefaults("br",     "display: block;");
+    addDefaults("hr",     "display: block; margin: 10px; padding:0.5px; background-color: GRAY;");
 
     // parsing the html to make a dom tree
     htmlParser parser;
@@ -114,6 +116,7 @@ int main(){
     for(auto node : htmlNode->children){
         if(node->name == "body") bodyNode = node;
     }
+
     parser.inheritCss(bodyNode);
 
     parser.traverse(parser.domTree, 0);
@@ -134,7 +137,10 @@ int main(){
 
         // limit the scroll offset
         if(yOffset>0) yOffset = 0;
-        if(layoutRenderTree.layoutTreeRoot) if(yOffset< -layoutRenderTree.layoutTreeRoot->children[0]->height+WINDOW_HEIGHT) yOffset = -layoutRenderTree.layoutTreeRoot->children[0]->height + WINDOW_HEIGHT;
+        if(layoutRenderTree.layoutTreeRoot){
+            if(yOffset< -layoutRenderTree.layoutTreeRoot->children[0]->height+WINDOW_HEIGHT ) yOffset = -layoutRenderTree.layoutTreeRoot->children[0]->height + WINDOW_HEIGHT;
+            if(layoutRenderTree.layoutTreeRoot->children[0]->height < WINDOW_HEIGHT) yOffset = 0;
+        }
 
         if (IsKeyDown(KEY_RIGHT)) debugMode = true;
         if (IsKeyDown(KEY_LEFT)) debugMode = false;

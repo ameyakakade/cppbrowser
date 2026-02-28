@@ -167,10 +167,14 @@ void layoutTree::traverse(layoutNode* node, int level){
     else if(node->type == nodeType::lineContainer){ std::cout << indent << "line ";}
     std::cout << (int)node->color.r << (int)node->color.g << (int)node->color.b << (int)node->color.a ;
     std::cout << " font size " << node->fontSize;
-    // std::cout << " " << " height:" << node->height;
-    // std::cout << " " << "  width:" << node->width;
-    // std::cout << " " << "      x:" << node->x;
-    // std::cout << " " << "      y:" << node->y;
+    for(int i=0; i<4; i++){
+        std::cout << " " << "  margin:" << node->margin[i];
+        std::cout << " " << " padding:" << node->padding[i];
+    }
+    std::cout << " " << " height:" << node->height;
+    std::cout << " " << "  width:" << node->width;
+    std::cout << " " << "      x:" << node->x;
+    std::cout << " " << "      y:" << node->y;
     std::cout << " " << node->text;
 
     std::cout << "\n";
@@ -347,7 +351,7 @@ float layoutTree::calculateLayoutInlineContainer(layoutNode* node, float availab
     node->height = nodeHeight;
     node->width  = availableWidth;
 
-    cursorY += nodeHeight;
+    // cursorY += nodeHeight;
 
     return nodeHeight;
 
