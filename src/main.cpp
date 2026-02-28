@@ -7,7 +7,7 @@
 int WINDOW_HEIGHT = 900;
 int WINDOW_WIDTH  = 1600;
 
-int ywindow = 0;
+int ywindow = 100;
 
 bool inView(layoutNode* node, int yOffset){
     if(node->y+yOffset+node->height < ywindow) return false;
@@ -77,7 +77,7 @@ int main(){
 
 
     // converting address to ip and getting html from server
-    std::string test = "http://127.0.0.1/wow.html";
+    std::string test = "http://127.0.0.1/test.html";
     urlReader testReader;
     testReader.read(test);
     std::string header, body;
@@ -102,22 +102,23 @@ int main(){
     htmlParser parser;
     parser.parse(body); // passing in the html
 
+    // parser.traverse(parser.domTree, 0);
+    std::cout << "Parsed html and made tree" << std::endl;
+
     // adding some basic attributes to the html node
-    treeNode* htmlNode;
-    for(auto node : parser.domTree->children){
-        if(node->name == "html") htmlNode = node;
-    }
+    treeNode* htmlNode = parser.findNodeByName("html", parser.domTree);
 
     // inherit css properties only for the nodes in body 
 
     parser.parseAttributes(parser.domTree);
 
-    treeNode* bodyNode;
-    for(auto node : htmlNode->children){
-        if(node->name == "body") bodyNode = node;
-    }
+    std::cout << "Parsed attributes" << std::endl;
+
+    treeNode* bodyNode = parser.findNodeByName("body", parser.domTree);
 
     parser.inheritCss(bodyNode);
+
+    std::cout << "Inherited css" << std::endl;
 
     parser.traverse(parser.domTree, 0);
 

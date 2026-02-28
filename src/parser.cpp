@@ -101,8 +101,6 @@ void htmlParser::parse(std::string input){
 
     for(auto letter : input){
 
-        putchar(letter);
-
         switch (letter){
 
             case '<':
@@ -185,10 +183,6 @@ void htmlParser::parse(std::string input){
                     }
                 }
                 
-                // go to the parent if it is a self closing tag
-                if(curr->name == "meta" or curr->name == "link"){
-                    curr = curr->parentNode;
-                }
 
                 data.clear();
                 attributes.clear();
@@ -211,10 +205,13 @@ void htmlParser::parse(std::string input){
                 bool check = false;
                 for(char c : attributes) check = check or (c != ' ') and (c != '\n') and (c != '\t');
 
-                if(data == "br" or data == "hr"){
+                if(data == "br" or data == "hr" or data == "meta" or data == "link"){
                     treeNode* temp = new treeNode(data, curr);
                     temp->type = html;
                     curr->children.emplace_back(temp);
+                    if(check){
+                        temp->rawAttributes = attributes;
+                    }
                     data.clear();
                     attributes.clear();
                     state = outside;
@@ -231,7 +228,23 @@ void htmlParser::parse(std::string input){
                     }
                     curr = temp;
                 }else if (type == endTag){
-                    curr = curr->parentNode;
+                    treeNode* temp = curr;
+
+                    while(true){
+
+                        // if we reach the root node
+                        if(!temp->parentNode){
+                            std::cout << data << " tag was never opened." << std::endl;
+                            break;
+                        }
+                        if(temp->name == data){
+                            curr = temp->parentNode;
+                            break;
+                        }
+
+                        temp = temp->parentNode;
+                    }
+
                 }
                 data.clear();
                 attributes.clear();
@@ -333,6 +346,9 @@ void htmlParser::traverse(treeNode* node, int level){
     for(auto property : node->style){
         std::cout << indent << "    " << property.name << " : " << property.value << std::endl;
     }
+    
+    if(node->parentNode) std::cout << indent << "Parent Name" << node->parentNode->name << std::endl;
+
     std::cout << "\n";
     for(auto child : node->children){
         traverse(child, level+1);
@@ -367,7 +383,9 @@ bool transferSingleAttributeIntoFour(std::string identifier, std::vector<cssProp
 
 void htmlParser::inheritCss(treeNode* node){
 
-    /* Inheriting global defaults */
+    if(node == nullptr            ) return;
+    if(node->parentNode == nullptr) return;
+
     node->style = globalDefaults;
 
     // store attributes of self with name and name and index in hashmap
@@ -388,15 +406,19 @@ void htmlParser::inheritCss(treeNode* node){
 
     /* Inheritance pass start */
 
-    std::vector<cssProperty>* parentCss = &node->parentNode->style; 
-    for(cssProperty attribute : *parentCss){
-        if(!attribute.inheritable) continue;
-        if(!selfCssAttributesCache.count(attribute.name)){
-            node->style.push_back(attribute);
-            cacheDirty = true;
-        }else{
-            node->style[selfCssAttributesCache[attribute.name]] = attribute;
+    if(node->parentNode){
+        std::vector<cssProperty>* parentCss = &node->parentNode->style; 
+        for(cssProperty attribute : *parentCss){
+            if(!attribute.inheritable) continue;
+            if(!selfCssAttributesCache.count(attribute.name)){
+                node->style.push_back(attribute);
+                cacheDirty = true;
+            }else{
+                node->style[selfCssAttributesCache[attribute.name]] = attribute;
+            }
         }
+    }else{
+        std::cout << "ERROR: Node's parent not found.";
     }
 
     refreshCache();
@@ -438,7 +460,7 @@ void htmlParser::inheritCss(treeNode* node){
     int state = ignoring;
     std::string name;
     std::string value;
-    
+
     for(char c : styles.value){
 
         switch(c){
@@ -517,6 +539,18 @@ void htmlParser::inheritCss(treeNode* node){
         inheritCss(child);
     }
 
+}
+
+treeNode* htmlParser::findNodeByName(std::string name, treeNode* node){
+    if(node->name == name){
+        std::cout << "Found node " << name << std::endl; 
+        return node;
+    } 
+    for(auto child : node->children){
+        treeNode* temp = findNodeByName(name, child);
+        if(temp) return temp;
+    }
+    return nullptr;
 }
 
 

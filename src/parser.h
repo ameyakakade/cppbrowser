@@ -42,6 +42,7 @@ class htmlParser{
         void parseAttributes(treeNode* node);
         void inheritCss(treeNode* node);
         void traverse(treeNode* node, int level);
+        treeNode* findNodeByName(std::string name, treeNode* node);
 
         treeNode* domTree;
 };

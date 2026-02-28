@@ -464,7 +464,7 @@ void layoutTree::seperateLineText(layoutNode* node, layoutNode* child, float ava
         temp->children.push_back(tempchild);
     };
 
-    for(auto c : child->text + " "){
+    for(auto c : child->text){
         if(c == ' '){
             // do the checks and if we hit the max word length make a new line container
             word += c;
@@ -493,6 +493,25 @@ void layoutTree::seperateLineText(layoutNode* node, layoutNode* child, float ava
         }
     }
 
+    float width = MeasureText((tempString+word).c_str(), child->fontSize);
+
+    // add to the last line if possible
+    if(checkLastLine){
+        float widthRemain = availableWidth - lastLine->width;
+        if(width > widthRemain){
+            addToLastLine(lastLine);
+            checkLastLine = false;
+            tempString.clear();
+        }
+
+    }else if(width >= availableWidth){
+
+        createLineContainer();
+        tempString.clear();
+    }
+
+    tempString += word;
+    word.clear();
 
     if(checkLastLine){
         float width = MeasureText((tempString).c_str(), child->fontSize);
