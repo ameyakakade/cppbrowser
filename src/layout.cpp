@@ -49,6 +49,12 @@ std::unordered_map<std::string, Color> stringToColorMap = {
         {"TRANSPARENT",  GetColor(0x00000000)}
 };
 
+layoutNode::~layoutNode(){
+    for(auto child : children){
+        if(child) delete child;
+    }
+}
+
 layoutNode* layoutNode::returnClone(){
     layoutNode* value = new layoutNode();
     

@@ -14,10 +14,10 @@ enum class nodeType{
 
 class layoutNode{
     public:
-        std::vector<layoutNode*> children;
-        layoutNode*              parent;
-        treeNode*                originNode;
-        std::string              text;
+        std::vector<layoutNode*> children   = {};
+        layoutNode*              parent     = nullptr;
+        treeNode*                originNode = nullptr;
+        std::string              text       = {};
 
         float height;
         float width;
@@ -38,6 +38,7 @@ class layoutNode{
         Color borderColor     = BLACK;
 
         layoutNode* returnClone();
+        ~layoutNode();
 };
 
 class layoutTree{
@@ -50,7 +51,7 @@ class layoutTree{
         displayType returnDisplayType(std::string& input);
         Color convertStringToColor(std::string& input);
 
-        layoutNode* layoutTreeRoot;
+        layoutNode* layoutTreeRoot = nullptr;
         layoutNode* currentContainerNode = nullptr;
 
         // constants

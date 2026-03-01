@@ -347,7 +347,7 @@ void htmlParser::traverse(treeNode* node, int level){
         std::cout << indent << "    " << property.name << " : " << property.value << std::endl;
     }
     
-    if(node->parentNode) std::cout << indent << "Parent Name" << node->parentNode->name << std::endl;
+    if(node->parentNode) std::cout << indent << "Parent Name: " << node->parentNode->name << std::endl;
 
     std::cout << "\n";
     for(auto child : node->children){

@@ -7,7 +7,7 @@
 int WINDOW_HEIGHT = 900;
 int WINDOW_WIDTH  = 1600;
 
-int ywindow = 100;
+int ywindow = 0;
 
 bool inView(layoutNode* node, int yOffset){
     if(node->y+yOffset+node->height < ywindow) return false;
@@ -87,14 +87,17 @@ int main(){
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "html viewer");
     SetTargetFPS(60);
 
+    curlReader fetcher;
 
+    std::string body;
+    fetcher.fetch("motherfuckingwebsite.com", body);
 
     // converting address to ip and getting html from server
-    std::string test = "http://127.0.0.1/wow.html";
-    urlReader testReader;
-    testReader.read(test);
-    std::string header, body;
-    testReader.request(header, body);
+    // std::string test = "http://127.0.0.1/wow.html";
+    // urlReader testReader;
+    // testReader.read(test);
+    // std::string header, body;
+    // testReader.request(header, body);
 
     addGlobalDefaults("display: inline; color: black; background-color: transparent; font-size: 16px; font-weight: normal; font-style: normal; text-decoration: none; cursor: auto; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;");
 

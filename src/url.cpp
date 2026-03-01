@@ -6,6 +6,46 @@
 #include <sstream>
 #include <string>
 
+size_t curl_to_string(void *ptr, size_t size, size_t nmemb, void *data){
+
+    // casting data pointer to a string pointer
+    // data is provided by user. this is our string
+    std::string *str = (std::string *) data;
+    // casting 'ptr' void pointer to char pointer
+    // basically ptr becomes a char array
+    char *sptr = (char *) ptr;
+    int x;
+
+    for(x=0; x< size* nmemb; x++){
+        (*str) += sptr[x];
+    }
+
+    return size*nmemb;
+}
+
+curlReader::curlReader(){
+    curl = curl_easy_init();
+}
+
+curlReader::~curlReader(){
+    if(curl) curl_easy_cleanup(curl);
+    else std::cout << "ERROR: Curl easy handle does not exist" << std::endl;
+}
+
+void curlReader::fetch(std::string url, std::string& data){
+    data.clear();
+    if(curl){
+        CURLcode result;
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_to_string);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+
+        result = curl_easy_perform(curl);
+    }
+}
+
 urlReader::urlReader(){
 
 }

@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(${PROJECT_NAME} src/main.cpp src/url.cpp src/parser.cpp src/layout.cpp)
 
-target_link_libraries(${PROJECT_NAME} raylib)
+target_link_libraries(${PROJECT_NAME} raylib curl)
 
 
 # Replace "your_browser_name" with the actual name of your target
