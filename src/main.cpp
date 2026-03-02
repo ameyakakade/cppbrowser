@@ -77,7 +77,8 @@ layoutNode* hitDetect(layoutNode* node, int x, int y){
     }
 }
 
-int main(){
+
+int main(int argc, char **argv){
 
     WINDOW_HEIGHT = 900;
     WINDOW_WIDTH  = 1600;
@@ -87,10 +88,8 @@ int main(){
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "html viewer");
     SetTargetFPS(60);
 
-    curlReader fetcher;
-
-    std::string body;
-    fetcher.fetch("motherfuckingwebsite.com", body);
+    std::string url = argv[1];
+    std::cout << url << std::endl;
 
     // converting address to ip and getting html from server
     // std::string test = "http://127.0.0.1/wow.html";
@@ -110,7 +109,7 @@ int main(){
     addDefaults("span",   "display: inline;");
 
     // enabling the line below somehow crashes the browser
-    // addDefaults("b",      "color: RED;");
+    addDefaults("b",      "color: RED;");
 
     addDefaults("strong", "display: inline; font-weight: bold;");
     addDefaults("em",     "display: inline; font-style: italic;");
@@ -118,8 +117,14 @@ int main(){
     addDefaults("br",     "display: block;");
     addDefaults("hr",     "display: block; margin: 10px; padding:0.5px; background-color: GRAY;");
 
+    curlReader fetcher;
+
+    std::string body;
+    fetcher.fetch(url, body);
+
     // parsing the html to make a dom tree
     htmlParser parser;
+    if(parser.domTree) delete parser.domTree;
     parser.parse(body); // passing in the html
 
     // parser.traverse(parser.domTree, 0);
@@ -164,6 +169,21 @@ int main(){
         //     if(yOffset< -layoutRenderTree.layoutTreeRoot->children[0]->height+WINDOW_HEIGHT ) yOffset = -layoutRenderTree.layoutTreeRoot->children[0]->height + WINDOW_HEIGHT;
         //     if(layoutRenderTree.layoutTreeRoot->children[0]->height < WINDOW_HEIGHT) yOffset = ywindow;
         // }
+        
+        if(IsKeyDown(KEY_R)){
+            fetcher.fetch(url, body);
+            if(parser.domTree) delete parser.domTree;
+            parser.parse(body); // passing in the html
+            std::cout << "Parsed html and made tree" << std::endl;
+            htmlNode = parser.findNodeByName("html", parser.domTree);
+            parser.parseAttributes(parser.domTree);
+            std::cout << "Parsed attributes" << std::endl;
+            bodyNode = parser.findNodeByName("body", parser.domTree);
+            parser.inheritCss(bodyNode);
+            std::cout << "Inherited css" << std::endl;
+            parser.traverse(parser.domTree, 0);
+            layoutTreeDirty = true;
+        }
 
         if (IsKeyDown(KEY_RIGHT)) debugMode = true;
         if (IsKeyDown(KEY_LEFT)) debugMode = false;

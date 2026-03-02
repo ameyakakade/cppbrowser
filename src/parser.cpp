@@ -91,7 +91,8 @@ void checkInheritable(cssProperty& property) {
     property.inheritable = inheritableProperties.count(property.name);
 }
 
-void htmlParser::parse(std::string input){
+void htmlParser::parse(std::string& input){
+
     domTree = new treeNode("ROOT", nullptr);
     int state = outside;
     int type = none;
@@ -177,9 +178,9 @@ void htmlParser::parse(std::string input){
                         curr->type = text;
                     }else{
                         treeNode* textNode = new treeNode("textNode", curr);
+                        curr->children.push_back(textNode);
                         textNode->nodeAttributes.push_back({"text", data});
                         textNode->type = text;
-                        curr->children.push_back(textNode);
                     }
                 }
                 
@@ -566,6 +567,7 @@ treeNode::treeNode(std::string input, treeNode* parent){
 }
 
 treeNode::~treeNode(){
+    std::cout << "Deleting node: " << name << std::endl;
     for(auto child : children){
         delete child;
     }

@@ -14,7 +14,6 @@ add_executable(${PROJECT_NAME} src/main.cpp src/url.cpp src/parser.cpp src/layou
 
 target_link_libraries(${PROJECT_NAME} raylib curl)
 
-
 # Replace "your_browser_name" with the actual name of your target
 target_compile_options(${PROJECT_NAME} PRIVATE 
     -fsanitize=address 

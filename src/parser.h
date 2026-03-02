@@ -25,8 +25,8 @@ void addGlobalDefaults(std::string input);
 class treeNode{
     public:
         treeNode(std::string input, treeNode* parent);
-        treeNode* parentNode;
-        std::vector<treeNode*> children;
+        treeNode* parentNode = nullptr;
+        std::vector<treeNode*> children = {};
         std::string name;
         int type;
         std::string rawAttributes;
@@ -38,11 +38,11 @@ class treeNode{
 
 class htmlParser{
     public:
-        void parse(std::string input);
+        void parse(std::string& input);
         void parseAttributes(treeNode* node);
         void inheritCss(treeNode* node);
         void traverse(treeNode* node, int level);
         treeNode* findNodeByName(std::string name, treeNode* node);
 
-        treeNode* domTree;
+        treeNode* domTree = nullptr;
 };

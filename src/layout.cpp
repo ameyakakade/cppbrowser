@@ -51,7 +51,7 @@ std::unordered_map<std::string, Color> stringToColorMap = {
 
 layoutNode::~layoutNode(){
     for(auto child : children){
-        if(child) delete child;
+        delete child;
     }
 }
 
