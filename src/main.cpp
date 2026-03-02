@@ -77,40 +77,6 @@ layoutNode* hitDetect(layoutNode* node, int x, int y){
     }
 }
 
-int main2(){
-
-    std::string url = "localhost/tt.html";
-
-    curlReader fetcher;
-
-    std::string body;
-    fetcher.fetch(url, body);
-
-    // parsing the html to make a dom tree
-    htmlParser parser;
-
-    // treeNode* htmlNode;
-    // treeNode* bodyNode;
-
-    for(int i=0; i<100000; i++){
-        // fetcher.fetch(url, body);
-        if(parser.domTree) parser.deleteTree(parser.domTree);
-        parser.parse(body); // passing in the html
-        // std::cout << "Parsed html and made tree" << std::endl;
-        // htmlNode = parser.findNodeByName("html", parser.domTree);
-        // parser.parseAttributes(parser.domTree);
-        // std::cout << "Parsed attributes" << std::endl;
-        // bodyNode = parser.findNodeByName("body", parser.domTree);
-        // parser.inheritCss(bodyNode);
-        // std::cout << "Inherited css" << std::endl;
-        parser.traverse(parser.domTree, 0);
-    }
-
-    while(true);
-
-    return 1;
-}
-
 int main(int argc, char **argv){
 
     WINDOW_HEIGHT = 900;

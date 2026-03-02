@@ -16,13 +16,11 @@ target_link_libraries(${PROJECT_NAME} raylib curl)
 
 # Replace "your_browser_name" with the actual name of your target
 target_compile_options(${PROJECT_NAME} PRIVATE 
-    -fsanitize=address 
     -g 
     -fno-omit-frame-pointer
 )
 
 target_link_options(${PROJECT_NAME} PRIVATE 
-    -fsanitize=address
 )
 
 # Checks if OSX and links appropriate frameworks (only required on MacOS)

@@ -91,14 +91,6 @@ void checkInheritable(cssProperty& property) {
     property.inheritable = inheritableProperties.count(property.name);
 }
 
-void htmlParser::deleteTree(treeNode* node){
-    for(auto child : node->children){
-        deleteTree(child);
-    }
-    std::cout << "Delete Node: " << node->name << std::endl;
-    delete node;
-}
-
 void htmlParser::parse(std::string& input){
 
     domTree = new treeNode("ROOT", nullptr);
@@ -572,4 +564,10 @@ void addDefaultStyle(std::string name, std::string value){
 treeNode::treeNode(std::string input, treeNode* parent){
     name = input;
     parentNode = parent;
+}
+
+treeNode::~treeNode(){
+    for(auto child : children){
+        delete child;
+    }
 }
