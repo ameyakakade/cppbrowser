@@ -5,7 +5,7 @@
 #include <utility>
 
 enum class displayType{
-    displayBlock, displayInline
+    displayBlock, displayInline, displayInlineBlock
 };
 
 enum class nodeType{

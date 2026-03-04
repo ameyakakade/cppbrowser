@@ -5,7 +5,7 @@ extern int WINDOW_WIDTH;
 
 extern int ywindow;
 
-bool inView(layoutNode* node, int yOffset);
-void renderLayoutTree(layoutNode* node, int yOffset);
-void renderLayoutTreeDebug(layoutNode* node, int yOffset);
-layoutNode* hitDetect(layoutNode* node, int x, int y);
+bool inView(layoutNode *node, int yOffset);
+void renderLayoutTree(layoutNode *node, int yOffset);
+void renderLayoutTreeDebug(layoutNode *node, int yOffset);
+layoutNode *hitDetect(layoutNode *node, int x, int y);
