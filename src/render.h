@@ -9,3 +9,4 @@ bool inView(layoutNode *node, int yOffset);
 void renderLayoutTree(layoutNode *node, int yOffset);
 void renderLayoutTreeDebug(layoutNode *node, int yOffset);
 layoutNode *hitDetect(layoutNode *node, int x, int y);
+void findUrl(std::string& url, treeNode* hit);

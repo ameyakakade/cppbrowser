@@ -104,7 +104,10 @@ void layoutTree::makeLayoutTree(treeNode *node, layoutNode *parentLayout)
                                            "-left"};
         for (int i = 0; i < 4; i++)
             array[i] = convertStringToPx(
-                           node->style[node->cssPropertyIndexCache[identifier + (suffix[i])]] .value) * scale;
+                           node->style[node->cssPropertyIndexCache[identifier +
+                                                                   (suffix[i])]]
+                               .value) *
+                       scale;
     };
 
     // filling margin and padding
@@ -136,14 +139,18 @@ void layoutTree::makeLayoutTree(treeNode *node, layoutNode *parentLayout)
     // filling font size
     currentLayoutNode->fontSize =
         convertStringToPx(
-            node->style[node->cssPropertyIndexCache["font-size"]].value) * scale;
-    std::cout << "font size of " << node->name << " is " << currentLayoutNode->fontSize;
+            node->style[node->cssPropertyIndexCache["font-size"]].value) *
+        scale;
+    std::cout << "font size of " << node->name << " is "
+              << currentLayoutNode->fontSize;
 
     // filling the background color
-    currentLayoutNode->backgroundColor = convertStringToColor( node->style[node->cssPropertyIndexCache["background-color"]].value);
+    currentLayoutNode->backgroundColor = convertStringToColor(
+        node->style[node->cssPropertyIndexCache["background-color"]].value);
 
     // filling the background color
-    currentLayoutNode->color = convertStringToColor( node->style[node->cssPropertyIndexCache["color"]].value);
+    currentLayoutNode->color = convertStringToColor(
+        node->style[node->cssPropertyIndexCache["color"]].value);
     std::cout << "filling the color of" << node->name << std::endl;
 
     // store the current container node and make it null so that children are
@@ -206,6 +213,10 @@ void layoutTree::traverse(layoutNode *node, int level)
     if (node->originNode)
     {
         std::cout << indent << node->originNode->name << " ";
+        if (node->originNode->parentNode)
+        {
+            std::cout << node->originNode->parentNode->name << " ";
+        }
     }
     else if (node->type == nodeType::inlineContainer)
     {
@@ -215,8 +226,9 @@ void layoutTree::traverse(layoutNode *node, int level)
     {
         std::cout << indent << "line ";
     }
-    // std::cout << (int)node->color.r << (int)node->color.g <<
-    // (int)node->color.b << (int)node->color.a ; std::cout << " font size " <<
+    std::cout << (int)node->backgroundColor.r << (int)node->backgroundColor.g
+              << (int)node->backgroundColor.b;
+    // std::cout << " font size " <<
     // node->fontSize; for(int i=0; i<4; i++){
     //     std::cout << " " << "  margin:" << node->margin[i];
     //     std::cout << " " << " padding:" << node->padding[i];
@@ -432,7 +444,9 @@ float layoutTree::calculateLayoutInlineContainer(layoutNode *node,
         {
             if (child->display == displayType::displayInline)
             {
-                ;
+                // flatten the tree structure and just add the text nodes
+                seperateInlineChildren(node, child, availableWidth,
+                                       lineContainers);
             }
         }
 
@@ -655,9 +669,7 @@ void layoutTree::seperateLineText(layoutNode *node, layoutNode *child,
         float widthRemain = availableWidth - lastLine->width;
         if (width < widthRemain)
         {
-            addToLastLine(lastLine);
-            checkLastLine = false;
-        }
+            addToLastLine(lastLine); checkLastLine = false; }
     }
     else
         createLineContainer();
@@ -673,6 +685,7 @@ Color layoutTree::convertStringToColor(std::string &input)
         {
             temp += c;
             state = 1;
+            ;
         }
         else if (c > 96 && c < 123)
         {
@@ -707,4 +720,42 @@ std::pair<float, float> layoutTree::getTextNodeHeight(layoutNode *node)
     node->height = ascender;
 
     return std::make_pair(ascender, descender);
+}
+
+void layoutTree::seperateInlineChildren(
+    layoutNode *node, layoutNode *child, float availableWidth,
+    std::vector<layoutNode *> &lineContainers)
+{
+    for (auto grandChild : child->children)
+    {
+        // inheriting background color because tree is flattened
+        Color temp = grandChild->backgroundColor;
+        if ((temp.a == 0) and (temp.r == 0) and (temp.g == 0) and (temp.b == 0))
+            grandChild->backgroundColor = child->backgroundColor;
+
+        if (grandChild->type == nodeType::text)
+        {
+            seperateLineText(node, grandChild, availableWidth, lineContainers);
+        }
+        else if (grandChild->display == displayType::displayInline)
+        {
+            seperateInlineChildren(node, grandChild, availableWidth,
+                                   lineContainers);
+        }
+        else if (grandChild->display == displayType::displayBlock)
+        {
+            layoutNode *temp = new layoutNode();
+            temp->parent = node;
+            lineContainers.push_back(temp);
+            temp->type = nodeType::lineContainer;
+            layoutNode *tempChild = grandChild->returnClone();
+            temp->children.push_back(tempChild);
+            seperateInlineChildren(node, grandChild, availableWidth,
+                                   lineContainers);
+            layoutNode *temp2 = new layoutNode();
+            temp2->parent = node;
+            lineContainers.push_back(temp2);
+            temp2->type = nodeType::lineContainer;
+        }
+    }
 }

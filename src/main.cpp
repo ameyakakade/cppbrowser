@@ -149,8 +149,8 @@ int main(int argc, char **argv)
             yOffset = ywindow;
         if (layoutRenderTree.layoutTreeRoot)
         {
-            if (yOffset < -bodyHeight + WINDOW_HEIGHT)
-                yOffset = -bodyHeight + WINDOW_HEIGHT;
+            // if (yOffset < -bodyHeight + WINDOW_HEIGHT)
+            //     yOffset = -bodyHeight + WINDOW_HEIGHT;
             if (bodyHeight < WINDOW_HEIGHT)
                 yOffset = ywindow;
         }
@@ -249,6 +249,19 @@ int main(int argc, char **argv)
             underMouse =
                 hitDetect(layoutRenderTree.layoutTreeRoot, GetMousePosition().x,
                           GetMousePosition().y - yOffset);
+
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+        {
+            if (underMouse)
+            {
+                if (underMouse->originNode)
+                {
+                    findUrl(url, underMouse->originNode);
+                    reload.store(true);
+                    layoutTreeDirty = true;
+                }
+            }
+        }
 
         BeginDrawing();
 

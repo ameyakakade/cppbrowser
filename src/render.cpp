@@ -102,3 +102,19 @@ layoutNode *hitDetect(layoutNode *node, int x, int y)
         return nullptr;
     }
 }
+
+void findUrl(std::string &url, treeNode *hit)
+{
+    while (hit->parentNode)
+    {
+        for(auto attribute : hit->nodeAttributes)
+        {
+            if (attribute.name == "href")
+            {
+                url = attribute.value;
+                return;
+            }
+        }
+        hit = hit->parentNode;
+    }
+}
