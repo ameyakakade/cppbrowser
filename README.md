@@ -14,6 +14,7 @@ A basic HTML viewer made using C++, raylib and curl.
 - Inline text rendering and basic inline div rendering. 
 - Inline style support for font-size, color, background-color.
 - Window resizing and zoom works.
+- UI is on a seperate thread.
 
 ## Limitations
 - Not even remotely compliant with w3 specs.
